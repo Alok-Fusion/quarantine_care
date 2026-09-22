@@ -1,0 +1,163 @@
+================================================================================
+                    QUARANTINE CARE FACILITY MANAGEMENT SYSTEM
+             COMPREHENSIVE FULLSTACK (BACKEND + FRONTEND) SPECIFICATION
+================================================================================
+
+1. SYSTEM OVERVIEW & ARCHITECTURE
+--------------------------------------------------------------------------------
+Quarantine Care is an integrated clinical operations platform designed for hospital
+isolation units, quarantine wards, and epidemiological field centers. The system
+consists of a robust TypeScript Express backend with MongoDB and a modern Next.js 15
+(App Router, TypeScript, Tailwind CSS) bedside web frontend.
+
+System Architecture:
+- Frontend: Next.js 15 (App Router, React 19, TypeScript, Tailwind CSS, Lucide Icons)
+- Backend: Node.js, Express, TypeScript (Strict Mode)
+- Database: MongoDB Atlas (with local MongoDB fallback) via Mongoose ODM
+- Authentication: Lightweight header-based authentication via `x-staff-id`
+- Authorization: Role-based route guards (Nurse, Doctor, Admin)
+- Clinical Workflow Gates:
+  * Duplicate vital log prevention (409 Conflict) with `?force=true` override.
+  * Prerequisite vital enforcement (400 Bad Request if doctor logs visit without vitals).
+  * 3 consecutive fever-free days quarantine release protocol.
+  * Epidemic mortality alert banner (>15% mortality threshold).
+
+
+2. FULL REPOSITORY STRUCTURE
+--------------------------------------------------------------------------------
+quarantine_care/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                    # Automated CI/CD build & typecheck pipeline
+├── backend/
+│   ├── src/
+│   │   ├── models/
+│   │   │   ├── Staff.ts              # Staff model (nurse, doctor, admin)
+│   │   │   ├── Patient.ts            # Patient demographic & isolation status
+│   │   │   ├── TemperatureLog.ts     # Vital readings & automatic fever flag
+│   │   │   ├── DoctorVisit.ts        # Physician consultation & rounds notes
+│   │   │   └── index.ts              # Model barrel export
+│   │   ├── middleware/
+│   │   │   ├── auth.ts               # x-staff-id validation & requireRole()
+│   │   │   └── errorHandler.ts       # Central error & 404 handler
+│   │   ├── services/
+│   │   │   └── dischargeService.ts   # 3-consecutive fever-free days evaluator
+│   │   ├── utils/
+│   │   │   └── dateUtils.ts          # Day boundaries & calendar keys
+│   │   ├── routes/
+│   │   │   ├── authRoutes.ts         # POST /api/login
+│   │   │   ├── patientRoutes.ts      # Vitals, Visits, Discharge, Status
+│   │   │   └── adminRoutes.ts        # GET /api/stats, /api/discharge-queue
+│   │   ├── scripts/
+│   │   │   ├── seed.ts               # Database seeder (~20 realistic patients)
+│   │   │   └── verifyApi.ts          # Automated 12-endpoint test suite
+│   │   └── server.ts                 # Express initialization, CORS, DB connect
+│   ├── .env                          # Backend active environment variables
+│   ├── .env.example                  # Backend template variables
+│   ├── tsconfig.json                 # TypeScript compiler configuration
+│   ├── package.json                  # Backend dependencies & npm scripts
+│   └── README.md                     # Backend API reference
+├── frontend/
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── layout.tsx            # Global layout with Auth & Toast providers
+│   │   │   ├── globals.css           # Tailwind base styles & theme
+│   │   │   ├── page.tsx              # Root index redirector
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx          # Staff ID login & quick-access buttons
+│   │   │   ├── nurse/
+│   │   │   │   └── page.tsx          # Bedside vitals logger & 409 conflict modal
+│   │   │   ├── doctor/
+│   │   │   │   └── page.tsx          # Rounds portal, gated visits, discharge
+│   │   │   └── admin/
+│   │   │       └── page.tsx          # 74-bed capacity, mortality alert, queue
+│   │   ├── components/
+│   │   │   ├── Navbar.tsx            # Global navigation, role badges, logout
+│   │   │   ├── RoleGuard.tsx         # Client-side route protection & redirect
+│   │   │   └── Modal.tsx             # Accessible backdrop dialog component
+│   │   ├── context/
+│   │   │   ├── AuthContext.tsx       # Staff session management & localStorage
+│   │   │   └── ToastContext.tsx      # Animated notification toasts
+│   │   ├── lib/
+│   │   │   └── api.ts                # Fetch wrapper with x-staff-id & 401 handler
+│   │   └── types/
+│   │       └── index.ts              # Frontend TypeScript interfaces
+│   ├── .env.local                    # Frontend active environment variables
+│   ├── .env.local.example            # Frontend template variables
+│   ├── tailwind.config.ts            # Tailwind CSS theme & clinical tokens
+│   ├── tsconfig.json                 # Frontend TypeScript compiler options
+│   ├── package.json                  # Frontend dependencies & scripts
+│   └── README.md                     # Frontend user guide
+├── README.md                         # Fullstack repository overview
+└── project_documentation.txt         # Complete system architecture specification
+
+
+3. USER FLOWS & WORKFLOW SPECIFICATIONS
+--------------------------------------------------------------------------------
+
+A. Authentication & Route Guard Flow:
+1. User opens http://localhost:3000 -> redirected to /login.
+2. User enters Staff ID (e.g. "N001") or clicks a quick-access pill.
+3. Client POSTs to `/api/login`, returns `{ staffId: "N001", name: "Nurse Sarah Jenkins", role: "nurse" }`.
+4. AuthContext persists profile in `localStorage` under `quarantine_care_staff`.
+5. User is redirected to `/nurse` (or `/doctor` for D001, `/admin` for A001).
+6. If a Nurse manually enters `/admin` in the browser URL:
+   - `RoleGuard` detects role mismatch (`nurse` != `admin`).
+   - `RoleGuard` redirects user back to `/nurse`.
+   - Toast notification appears: "Not authorized for this view."
+
+B. Nurse Bedside Vitals Workflow:
+1. Nurse opens `/nurse`.
+2. Active patient list loads with `tempLoggedToday` badges (Recorded vs Vitals Needed).
+3. Nurse clicks a patient card -> opens bedside detail modal.
+4. Nurse inputs temperature (e.g. 98.6°F) and clicks "Save Vitals".
+5. If already logged today:
+   - Backend returns `409 Conflict` with `existingLogTime`.
+   - Frontend displays confirmation modal: "Already logged today at [time]. Overwrite?"
+   - On confirmation, re-submits with `?force=true`.
+
+C. Doctor Rounds & Discharge Workflow:
+1. Doctor opens `/doctor`.
+2. Patients needing rounds ("Not Visited Today") are highlighted first.
+3. Doctor selects a patient and inputs clinical consultation notes.
+4. If temperature has not yet been recorded for today:
+   - Backend returns `400 Bad Request`: "Cannot log visit: temperature not yet recorded today".
+   - Frontend shows inline warning banner with exact backend message.
+5. If temperature was recorded today:
+   - Visit is saved with timestamp and doctor ID.
+6. When a patient reaches 3 consecutive fever-free days:
+   - "Discharge Ready" badge appears.
+   - Doctor clicks "Discharge Patient" -> confirmation dialog -> approves discharge.
+7. If patient succumbs to illness:
+   - Doctor clicks "Deceased" -> high-friction confirmation dialog requiring clinical notes -> marks status as deceased.
+
+D. Administrator Operations Workflow:
+1. Admin opens `/admin`.
+2. Evaluates 74-bed facility occupancy rate and throughput.
+3. Reviews mortality rate against the 85.0% success benchmark.
+4. If mortality exceeds 15.0%:
+   - Prominent red epidemic alert banner pulses across the top of the screen.
+5. Reviews the Discharge Queue table showing all patients eligible for discharge.
+
+
+4. DATA SCHEMAS & DATABASE DESIGN
+--------------------------------------------------------------------------------
+- MongoDB Atlas Connection: `mongodb+srv://<db_username>:<db_password>@cluster0.cfk9yxj.mongodb.net/quarantinecare`
+- Collections:
+  * `staffs`: Staff accounts (N001, D001, A001)
+  * `patients`: Quarantined individuals (name, bedNumber, admittedDate, status, dischargeDate, notes)
+  * `temperaturelogs`: Vitals history (patientId, value, hasFever, loggedAt, loggedBy)
+  * `doctorvisits`: Clinical visit notes (patientId, visitedAt, notes, visitedBy)
+
+
+5. SEED DATASET & CREDENTIALS
+--------------------------------------------------------------------------------
+Running `npm run seed` in `backend/` creates:
+- Nurse: ID `N001` (Nurse Sarah Jenkins) -> Dashboard `/nurse`
+- Doctor: ID `D001` (Dr. Alexander Ross, MD) -> Dashboard `/doctor`
+- Admin: ID `A001` (Director Marcus Vance) -> Dashboard `/admin`
+- ~20 Patients with multi-day historical vitals & visits across all clinical states.
+
+================================================================================
+                        END OF FULLSTACK SPECIFICATION
+================================================================================
