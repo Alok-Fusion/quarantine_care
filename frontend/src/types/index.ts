@@ -5,6 +5,15 @@ export interface Staff {
   staffId: string;
   name: string;
   role: StaffRole;
+  active?: boolean;
+  createdBy?: {
+    _id: string;
+    name: string;
+    staffId: string;
+    role: StaffRole;
+  } | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type PatientStatus = 'active' | 'discharged' | 'deceased';
@@ -94,4 +103,48 @@ export interface FacilityStats {
   mortalityRate: number;
   successRate: number;
   mortalityAlert: boolean;
+}
+
+export interface BedItem {
+  bedNumber: string;
+  zone: string;
+  status: 'occupied' | 'free';
+  patientId?: string | null;
+  patientName?: string | null;
+  admittedDate?: string | null;
+}
+
+export interface BedsResponse {
+  capacity: number;
+  occupiedCount: number;
+  freeCount: number;
+  occupancyRate: number;
+  beds: BedItem[];
+}
+
+export type NotificationType =
+  | 'new-patient'
+  | 'discharge-eligible'
+  | 'temp-overdue'
+  | 'visit-overdue'
+  | 'mortality-alert';
+
+export interface NotificationItem {
+  _id: string;
+  recipientStaffId: string;
+  type: NotificationType;
+  message: string;
+  relatedPatientId?: {
+    _id: string;
+    name: string;
+    bedNumber: string;
+    status: PatientStatus;
+  } | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  unreadCount: number;
+  notifications: NotificationItem[];
 }

@@ -7,6 +7,7 @@ import { Modal } from '../../components/Modal';
 import { useToast } from '../../context/ToastContext';
 import { api, ApiError } from '../../lib/api';
 import { Patient, PatientDetailResponse, TemperatureLog } from '../../types';
+import Link from 'next/link';
 import {
   Thermometer,
   Search,
@@ -194,6 +195,15 @@ export default function NurseDashboard() {
                   </div>
                 </div>
               </div>
+
+              <Link
+                href="/admit"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-950/50"
+              >
+                <Bed className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Admit Patient & Bed Map</span>
+                <span className="sm:hidden">Admit</span>
+              </Link>
 
               <button
                 onClick={fetchPatients}

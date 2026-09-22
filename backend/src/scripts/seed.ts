@@ -4,6 +4,7 @@ import { Staff } from '../models/Staff';
 import { Patient } from '../models/Patient';
 import { TemperatureLog } from '../models/TemperatureLog';
 import { DoctorVisit } from '../models/DoctorVisit';
+import { Notification } from '../models/Notification';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ async function seed() {
       Patient.deleteMany({}),
       TemperatureLog.deleteMany({}),
       DoctorVisit.deleteMany({}),
+      Notification.deleteMany({}),
     ]);
     console.log('✓ All previous records cleared');
 
@@ -43,18 +45,24 @@ async function seed() {
       staffId: 'N001',
       name: 'Nurse Sarah Jenkins',
       role: 'nurse',
+      active: true,
+      createdBy: null,
     });
 
     const doctor = await Staff.create({
       staffId: 'D001',
       name: 'Dr. Alexander Ross, MD',
       role: 'doctor',
+      active: true,
+      createdBy: null,
     });
 
     const admin = await Staff.create({
       staffId: 'A001',
       name: 'Director Marcus Vance',
       role: 'admin',
+      active: true,
+      createdBy: null,
     });
 
     console.log('✓ Created 3 staff members (Nurse, Doctor, Admin)');
@@ -219,7 +227,6 @@ async function seed() {
         tempHistory: [
           { daysAgo: 2, value: 98.6 }, // fever-free 1
           { daysAgo: 1, value: 98.4 }, // fever-free 2
-          // No temp today yet
         ],
         visitNotes: [
           { daysAgo: 2, notes: 'Mild symptoms upon admission, settling well.' },
@@ -249,7 +256,7 @@ async function seed() {
         bedNumber: 'Bed C-301',
         admittedDaysAgo: 0,
         status: 'active' as const,
-        tempHistory: [], // Not logged yet
+        tempHistory: [],
         visitNotes: [],
       },
       {
@@ -355,7 +362,7 @@ async function seed() {
     const deceasedPatientsData = [
       {
         name: 'Arthur Pendelton',
-        bedNumber: 'Bed E-501',
+        bedNumber: 'Bed D-413',
         admittedDaysAgo: 7,
         status: 'deceased' as const,
         dischargeDaysAgo: 2,
@@ -374,7 +381,7 @@ async function seed() {
       },
       {
         name: 'Margaret Thorne',
-        bedNumber: 'Bed E-502',
+        bedNumber: 'Bed D-414',
         admittedDaysAgo: 6,
         status: 'deceased' as const,
         dischargeDaysAgo: 1,
@@ -445,6 +452,28 @@ async function seed() {
       `✓ Seeded ${allPatientDatasets.length} patients with ${totalTempLogs} temperature logs and ${totalVisits} doctor visits.`
     );
 
+    // Initial Welcome Notifications
+    await Notification.create([
+      {
+        recipientStaffId: nurse._id,
+        type: 'new-patient',
+        message: 'Welcome to Quarantine Care Nurse Station. Daily vitals tracking initialized.',
+        read: false,
+      },
+      {
+        recipientStaffId: doctor._id,
+        type: 'discharge-eligible',
+        message: 'Multiple active patients are eligible for discharge rounds.',
+        read: false,
+      },
+      {
+        recipientStaffId: admin._id,
+        type: 'new-patient',
+        message: 'Facility bed capacity tracking initialized (74 beds available).',
+        read: false,
+      },
+    ]);
+
     // 4. Output Summary & Credentials
     console.log('\n[4/4] Generating Seed Summary & Quick Access Credentials...');
     console.log('='.repeat(65));
@@ -456,17 +485,6 @@ async function seed() {
       { Role: 'ADMIN', 'Staff ID': 'A001', Name: admin.name, Header: 'x-staff-id: A001' },
     ]);
 
-    console.log('='.repeat(65));
-    console.log('                 SAMPLE cURL COMMANDS FOR TESTING              ');
-    console.log('='.repeat(65));
-    console.log('1. Login:');
-    console.log('   curl -X POST http://localhost:4000/api/login -H "Content-Type: application/json" -d \'{"staffId": "N001"}\'');
-    console.log('\n2. Get Active Patients:');
-    console.log('   curl http://localhost:4000/api/patients -H "x-staff-id: N001"');
-    console.log('\n3. Get Discharge Queue:');
-    console.log('   curl http://localhost:4000/api/patients/discharge-queue -H "x-staff-id: D001"');
-    console.log('\n4. Get Admin Facility Stats:');
-    console.log('   curl http://localhost:4000/api/stats -H "x-staff-id: A001"');
     console.log('='.repeat(65));
     console.log('✓ Database seeding complete!\n');
 

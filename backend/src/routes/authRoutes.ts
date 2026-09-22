@@ -29,6 +29,13 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    if (!staff.active) {
+      res.status(401).json({
+        error: `Staff account with ID '${cleanStaffId}' has been deactivated. Please contact an administrator.`,
+      });
+      return;
+    }
+
     res.json({
       staffId: staff.staffId,
       name: staff.name,

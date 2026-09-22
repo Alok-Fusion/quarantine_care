@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
 export type StaffRole = 'nurse' | 'doctor' | 'admin';
 
@@ -6,6 +6,8 @@ export interface IStaff extends Document {
   name: string;
   role: StaffRole;
   staffId: string;
+  active: boolean;
+  createdBy?: Types.ObjectId | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,6 +34,17 @@ const StaffSchema: Schema = new Schema(
       trim: true,
       uppercase: true,
       index: true,
+    },
+    active: {
+      type: Boolean,
+      default: true,
+      required: true,
+      index: true,
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'Staff',
+      default: null,
     },
   },
   {

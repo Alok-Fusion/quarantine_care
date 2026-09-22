@@ -80,7 +80,15 @@ The database includes 3 pre-seeded accounts corresponding to the primary clinica
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/login` | Public | Authenticate via `staffId` |
 | `GET` | `/api/health` | Public | Service health & MongoDB status |
+| `GET` | `/api/staff` | Admin | List all staff members with active status |
+| `POST` | `/api/staff` | Admin | Add staff with auto-generated ID (N00X/D00X/A00X) |
+| `PATCH` | `/api/staff/:id` | Admin | Update staff name/role/active status |
+| `GET` | `/api/beds` | Staff | 74-bed status map (occupied vs free) |
+| `GET` | `/api/notifications` | Staff | Scoped unread notifications (polled every 20s) |
+| `PATCH` | `/api/notifications/:id/read` | Staff | Mark individual notification as read |
+| `PATCH` | `/api/notifications/read-all` | Staff | Mark all notifications as read |
 | `GET` | `/api/patients` | Staff | List active patients (`?filter=not-visited-today`) |
+| `POST` | `/api/patients` | Nurse / Admin | Admit patient (capacity <= 74, bed conflict 409) |
 | `GET` | `/api/patients/:id` | Staff | Full patient detail with vitals & visit history |
 | `GET` | `/api/patients/:id/discharge-eligible` | Staff | 3-consecutive fever-free evaluation breakdown |
 | `POST` | `/api/patients/:id/temperature` | Nurse | Record vitals (`?force=true` for duplicate overwrite) |

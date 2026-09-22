@@ -12,8 +12,9 @@ declare global {
 
 /**
  * Authentication middleware:
- * Validates 'x-staff-id' header against the database and attaches staff document to req.staff.
- * Returns 401 Unauthorized if missing or invalid.
+ * Validates 'x-staff-id' header against the database and checks that staff.active is true.
+ * Attaches staff document to req.staff.
+ * Returns 401 Unauthorized if missing, invalid, or deactivated.
  */
 export async function authenticateStaff(
   req: Request,
@@ -36,6 +37,13 @@ export async function authenticateStaff(
     if (!staff) {
       res.status(401).json({
         error: `Unauthorized: Staff with ID '${staffId}' not found`,
+      });
+      return;
+    }
+
+    if (!staff.active) {
+      res.status(401).json({
+        error: `Unauthorized: Staff account with ID '${staffId}' has been deactivated`,
       });
       return;
     }

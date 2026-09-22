@@ -6,6 +6,10 @@ import { DoctorVisit } from '../models/DoctorVisit';
 import { authenticateStaff, requireRole } from '../middleware/auth';
 import { getStartOfDay, getEndOfDay } from '../utils/dateUtils';
 import { evaluateDischargeEligibility } from '../services/dischargeService';
+import {
+  notifyPatientAdmission,
+  notifyDischargeEligible,
+} from '../services/notificationService';
 
 const router = Router();
 
@@ -41,6 +45,9 @@ router.get('/discharge-queue', async (req: Request, res: Response): Promise<void
           latestTemperature: latestTemp,
           latestVisit,
         });
+
+        // Trigger notification for eligible patient
+        notifyDischargeEligible(patient.name, patient._id as mongoose.Types.ObjectId).catch(console.error);
       }
     }
 
@@ -129,6 +136,10 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
             const eligibility = await evaluateDischargeEligibility(patient._id as mongoose.Types.ObjectId);
             dischargeEligible = eligibility.isEligible;
             consecutiveFeverFreeDays = eligibility.consecutiveFeverFreeDays;
+
+            if (dischargeEligible) {
+              notifyDischargeEligible(patient.name, patient._id as mongoose.Types.ObjectId).catch(console.error);
+            }
           } catch (e) {
             // Ignore individual evaluation failure
           }
@@ -161,36 +172,79 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 
 /**
  * @route   POST /api/patients
- * @desc    Admit a new patient
- * @access  Staff (Nurse, Doctor, Admin)
+ * @desc    Admit a new patient with bed assignment and capacity check
+ * @access  Nurse and Admin
  */
-router.post('/', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { name, bedNumber, admittedDate, notes } = req.body;
+router.post(
+  '/',
+  requireRole('nurse', 'admin'),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { name, bedNumber, admittedDate, notes } = req.body;
 
-    if (!name || !bedNumber) {
-      res.status(400).json({
-        error: 'Patient name and bedNumber are required',
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        res.status(400).json({ error: 'Patient name is required' });
+        return;
+      }
+
+      if (!bedNumber || typeof bedNumber !== 'string' || !bedNumber.trim()) {
+        res.status(400).json({ error: 'Bed number is required for patient admission' });
+        return;
+      }
+
+      const cleanBedNumber = bedNumber.trim();
+
+      // 1. Capacity check: Max 74 active patients
+      const activeCount = await Patient.countDocuments({ status: 'active' });
+      if (activeCount >= 74) {
+        res.status(400).json({
+          error: 'Facility at full capacity (74/74 beds occupied). Cannot admit new patient.',
+        });
+        return;
+      }
+
+      // 2. Bed conflict check: Bed must not be occupied by another active patient
+      const bedTaken = await Patient.findOne({
+        bedNumber: { $regex: new RegExp(`^${cleanBedNumber.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, 'i') },
+        status: 'active',
       });
-      return;
+
+      if (bedTaken) {
+        res.status(409).json({
+          error: `Bed ${cleanBedNumber} is already occupied by patient ${bedTaken.name}`,
+          occupiedBy: {
+            patientId: bedTaken._id,
+            patientName: bedTaken.name,
+            admittedDate: bedTaken.admittedDate,
+          },
+        });
+        return;
+      }
+
+      const patient = await Patient.create({
+        name: name.trim(),
+        bedNumber: cleanBedNumber,
+        admittedDate: admittedDate ? new Date(admittedDate) : new Date(),
+        status: 'active',
+        notes: notes ? notes.trim() : '',
+      });
+
+      // 3. Trigger admission notification to all active nurses & doctors
+      notifyPatientAdmission(
+        patient.name,
+        patient.bedNumber,
+        patient._id as mongoose.Types.ObjectId
+      ).catch(console.error);
+
+      res.status(201).json(patient);
+    } catch (error: any) {
+      res.status(500).json({
+        error: 'Error admitting patient',
+        details: error.message,
+      });
     }
-
-    const patient = await Patient.create({
-      name: name.trim(),
-      bedNumber: bedNumber.trim(),
-      admittedDate: admittedDate ? new Date(admittedDate) : new Date(),
-      status: 'active',
-      notes: notes ? notes.trim() : '',
-    });
-
-    res.status(201).json(patient);
-  } catch (error: any) {
-    res.status(500).json({
-      error: 'Error admitting patient',
-      details: error.message,
-    });
   }
-});
+);
 
 /**
  * @route   GET /api/patients/:id/discharge-eligible
@@ -352,6 +406,16 @@ router.post(
         'loggedBy',
         'name staffId role'
       );
+
+      // Check if this new reading made the patient discharge-eligible
+      try {
+        const eligibility = await evaluateDischargeEligibility(patient._id as mongoose.Types.ObjectId);
+        if (eligibility.isEligible) {
+          notifyDischargeEligible(patient.name, patient._id as mongoose.Types.ObjectId).catch(console.error);
+        }
+      } catch (e) {
+        // Ignore
+      }
 
       res.status(201).json(populatedLog);
     } catch (error: any) {

@@ -9,21 +9,24 @@ dotenv.config();
 import authRoutes from './routes/authRoutes';
 import patientRoutes from './routes/patientRoutes';
 import adminRoutes from './routes/adminRoutes';
+import staffRoutes from './routes/staffRoutes';
+import bedRoutes from './routes/bedRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { authenticateStaff, requireRole } from './middleware/auth';
 import { Patient } from './models/Patient';
+import { notifyMortalityAlert } from './services/notificationService';
 
 const app: Application = express();
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI =
   process.env.MONGODB_URI || 'mongodb://localhost:27017/quarantinecare';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // CORS configuration
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps, curl, postman)
       if (!origin) return callback(null, true);
       if (
         FRONTEND_URL === '*' ||
@@ -33,7 +36,7 @@ app.use(
       ) {
         return callback(null, true);
       }
-      return callback(null, true); // Permissive for prototype testing
+      return callback(null, true);
     },
     allowedHeaders: ['Content-Type', 'x-staff-id', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -54,6 +57,15 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 // Auth Routes
 app.use('/api', authRoutes);
+
+// Staff Management Routes (Admin only)
+app.use('/api/staff', staffRoutes);
+
+// Beds Map & Capacity Routes (Staff authenticated)
+app.use('/api/beds', bedRoutes);
+
+// Notifications Routes (Staff authenticated)
+app.use('/api/notifications', notificationRoutes);
 
 // Admin Routes (mounted at /api/admin as well as root /api/stats for convenience)
 app.use('/api/admin', adminRoutes);
@@ -88,6 +100,10 @@ app.get(
       const mortalityAlert = mortalityRate > 0.15;
       const occupancyRate = Number((occupied / CAPACITY).toFixed(4));
 
+      if (mortalityAlert) {
+        notifyMortalityAlert(mortalityRate).catch(console.error);
+      }
+
       res.json({
         occupied,
         capacity: CAPACITY,
@@ -121,7 +137,10 @@ async function startServer() {
   try {
     console.log('[Database] Connecting to MongoDB...');
     await mongoose.connect(MONGODB_URI);
-    console.log('[Database] Connected successfully to MongoDB:', MONGODB_URI.replace(/:[^:]*@/, ':****@'));
+    console.log(
+      '[Database] Connected successfully to MongoDB:',
+      MONGODB_URI.replace(/:[^:]*@/, ':****@')
+    );
 
     app.listen(PORT, () => {
       console.log(`[Server] Quarantine Care Backend running on port ${PORT}`);
@@ -134,7 +153,7 @@ async function startServer() {
   }
 }
 
-if (process.env.NODE_ENV !== 'test') {
+if (require.main === module) {
   startServer();
 }
 

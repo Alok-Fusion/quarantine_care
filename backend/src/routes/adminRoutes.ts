@@ -5,6 +5,7 @@ import { TemperatureLog } from '../models/TemperatureLog';
 import { DoctorVisit } from '../models/DoctorVisit';
 import { authenticateStaff, requireRole } from '../middleware/auth';
 import { evaluateDischargeEligibility } from '../services/dischargeService';
+import { notifyMortalityAlert } from '../services/notificationService';
 
 const router = Router();
 
@@ -30,7 +31,7 @@ router.get('/stats', async (req: Request, res: Response): Promise<void> => {
 
     const totalResolved = dischargedCount + deceasedCount;
     
-    // Mortality rate relative to total admitted or resolved
+    // Mortality rate relative to total admitted
     const mortalityRate =
       totalAdmitted > 0
         ? Number((deceasedCount / totalAdmitted).toFixed(4))
@@ -43,6 +44,10 @@ router.get('/stats', async (req: Request, res: Response): Promise<void> => {
 
     const mortalityAlert = mortalityRate > 0.15;
     const occupancyRate = Number((occupied / CAPACITY).toFixed(4));
+
+    if (mortalityAlert) {
+      notifyMortalityAlert(mortalityRate).catch(console.error);
+    }
 
     res.json({
       occupied,
