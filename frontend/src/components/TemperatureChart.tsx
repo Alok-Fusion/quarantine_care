@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { TemperatureLog } from '../types';
 
 interface TemperatureChartProps {
@@ -8,10 +8,12 @@ interface TemperatureChartProps {
 }
 
 export function TemperatureChart({ logs }: TemperatureChartProps) {
+  const [hoveredLog, setHoveredLog] = useState<TemperatureLog | null>(null);
+
   if (!logs || logs.length === 0) {
     return (
-      <div className="py-6 text-center text-xs text-text-muted border border-border bg-ink rounded-[3px]">
-        No temperature readings recorded yet.
+      <div className="py-8 text-center text-xs text-text-muted border border-border bg-[#0B1118] rounded-[3px] font-mono">
+        NO TEMPERATURE READINGS RECORDED
       </div>
     );
   }
@@ -26,10 +28,10 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
   const maxTemp = Math.max(104, Math.ceil(Math.max(...values) + 0.5));
   const tempRange = maxTemp - minTemp || 1;
 
-  const chartHeight = 120;
-  const chartWidth = 500;
-  const paddingX = 30;
-  const paddingY = 15;
+  const chartHeight = 140;
+  const chartWidth = 560;
+  const paddingX = 40;
+  const paddingY = 20;
 
   const getX = (index: number) => {
     if (sortedLogs.length <= 1) return chartWidth / 2;
@@ -46,39 +48,49 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
 
   // Fever line at 100.4°F
   const feverY = getY(100.4);
+  const baselineY = getY(98.6);
 
   // Generate SVG path for line
   const points = sortedLogs.map((log, i) => `${getX(i)},${getY(log.value)}`);
   const pathD = points.length > 1 ? `M ${points.join(' L ')}` : '';
 
   return (
-    <div className="border border-border bg-ink p-3 rounded-[3px] space-y-2">
-      <div className="flex items-center justify-between text-[11px] font-mono text-text-muted">
-        <span>Vitals Trend Chart</span>
-        <span className="flex items-center gap-2">
-          <span className="inline-block w-2 h-0.5 bg-status-fever" />
-          <span>Fever threshold: 100.4°F</span>
-        </span>
+    <div className="border border-border bg-[#0B1118] p-3.5 rounded-[3px] space-y-2">
+      <div className="flex items-center justify-between text-[11px] font-mono text-text-muted border-b border-border/50 pb-2">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold uppercase tracking-wider text-text">Vital Signs Trend</span>
+          <span className="text-[10px] text-text-muted">({sortedLogs.length} readings)</span>
+        </div>
+        <div className="flex items-center gap-4 text-[10px]">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-0.5 bg-status-fever" />
+            <span className="text-status-fever font-semibold">100.4°F Threshold</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-0.5 bg-[#2A3844]" />
+            <span>98.6°F Baseline</span>
+          </span>
+        </div>
       </div>
 
-      <div className="relative w-full overflow-x-auto">
+      <div className="relative w-full overflow-x-auto py-1">
         <svg
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-          className="w-full h-32 overflow-visible"
+          className="w-full h-36 overflow-visible"
         >
-          {/* Baseline Grid lines */}
+          {/* Baseline 98.6 Grid line */}
           <line
             x1={paddingX}
-            y1={getY(98.6)}
+            y1={baselineY}
             x2={chartWidth - paddingX}
-            y2={getY(98.6)}
+            y2={baselineY}
             stroke="#2A3844"
             strokeDasharray="2,2"
             strokeWidth="1"
           />
           <text
-            x={paddingX - 4}
-            y={getY(98.6) + 3}
+            x={paddingX - 6}
+            y={baselineY + 3}
             fill="#8FA1AF"
             fontSize="9"
             fontFamily="var(--font-ibm-plex-mono), monospace"
@@ -98,22 +110,23 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
             strokeWidth="1"
           />
           <text
-            x={paddingX - 4}
+            x={paddingX - 6}
             y={feverY + 3}
             fill="#C4472F"
             fontSize="9"
             fontFamily="var(--font-ibm-plex-mono), monospace"
             textAnchor="end"
+            fontWeight="bold"
           >
             100.4
           </text>
 
-          {/* Connecting Step/Trend Line */}
+          {/* Connecting Line */}
           {pathD && (
             <path
               d={pathD}
               fill="none"
-              stroke="#8FA1AF"
+              stroke="#4E677E"
               strokeWidth="1.5"
             />
           )}
@@ -126,7 +139,12 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
             const color = isFever ? '#C4472F' : '#4F9D69';
 
             return (
-              <g key={log._id || i}>
+              <g
+                key={log._id || i}
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredLog(log)}
+                onMouseLeave={() => setHoveredLog(null)}
+              >
                 <circle
                   cx={cx}
                   cy={cy}
@@ -144,13 +162,39 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
                   textAnchor="middle"
                   className="font-mono font-bold"
                 >
-                  {log.value}°
+                  {log.value.toFixed(1)}°
+                </text>
+                <text
+                  x={cx}
+                  y={chartHeight - 4}
+                  fill="#55697A"
+                  fontSize="8"
+                  fontFamily="var(--font-ibm-plex-mono), monospace"
+                  textAnchor="middle"
+                >
+                  {new Date(log.loggedAt).toLocaleDateString([], { month: 'numeric', day: 'numeric' })}
                 </text>
               </g>
             );
           })}
         </svg>
       </div>
+
+      {hoveredLog && (
+        <div className="text-[11px] font-mono text-text-muted bg-[#16212C] border border-border p-2 rounded-[2px] flex items-center justify-between">
+          <span>
+            Reading: <strong className="text-text">{hoveredLog.value.toFixed(1)}°F</strong>{' '}
+            ({hoveredLog.hasFever ? 'Fever detected' : 'Afebrile / Stable'})
+          </span>
+          <span>
+            Logged by:{' '}
+            <span className="text-text">
+              {hoveredLog.loggedBy?.name || hoveredLog.loggedBy?.staffId || 'Staff'}
+            </span>{' '}
+            at {new Date(hoveredLog.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

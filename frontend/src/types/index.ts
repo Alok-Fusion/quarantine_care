@@ -16,6 +16,13 @@ export interface Staff {
   updatedAt?: string;
 }
 
+export interface LoginResponse {
+  _id?: string;
+  staffId: string;
+  name: string;
+  role: StaffRole;
+}
+
 export type PatientStatus = 'active' | 'discharged' | 'deceased';
 
 export interface TemperatureLog {
@@ -78,6 +85,7 @@ export interface Patient {
   tempLoggedToday?: boolean;
   visitedToday?: boolean;
   latestTemperature?: TemperatureLog | null;
+  latestTemp?: TemperatureLog | null;
   consecutiveFeverFreeDays?: number;
   dischargeEligible?: boolean;
   eligibility?: DischargeEligibility;

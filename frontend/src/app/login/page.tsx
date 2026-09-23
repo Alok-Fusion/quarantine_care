@@ -1,194 +1,173 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Activity, ArrowRight, Loader2, KeyRound } from 'lucide-react';
+import { api, ApiError } from '../../lib/api';
+import { LoginResponse } from '../../types';
+import {
+  Shield,
+  KeyRound,
+  Loader2,
+  AlertTriangle,
+  ArrowRight,
+  Stethoscope,
+  Activity,
+  ClipboardList,
+} from 'lucide-react';
 
-function LoginForm() {
-  const [staffIdInput, setStaffIdInput] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const { staff, role, login } = useAuth();
+export default function LoginPage() {
+  const [staffId, setStaffId] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const { login } = useAuth();
   const { showToast } = useToast();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  useEffect(() => {
-    if (staff && role) {
-      const routes: Record<string, string> = {
-        nurse: '/nurse',
-        doctor: '/doctor',
-        admin: '/admin',
-      };
-      router.replace(routes[role] || '/nurse');
-    }
-
-    if (searchParams.get('expired') === 'true') {
-      showToast('Session expired. Please sign in again.', 'warning');
-    }
-  }, [staff, role, router, searchParams, showToast]);
-
-  const handleSubmit = async (e: React.FormEvent, customId?: string) => {
-    if (e) e.preventDefault();
-    const idToUse = customId || staffIdInput;
-
-    if (!idToUse.trim()) {
-      setErrorMessage('Staff ID is required');
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!staffId.trim()) {
+      setErrorMsg('Please enter your Staff ID');
       return;
     }
 
-    setErrorMessage('');
-    setIsSubmitting(true);
+    setErrorMsg('');
+    setIsLoading(true);
 
     try {
-      const loggedInStaff = await login(idToUse);
-      showToast(
-        `Signed in as ${loggedInStaff.name}`,
-        'info'
-      );
+      const loggedInStaff = await login(staffId.trim());
+      showToast(`Welcome, ${loggedInStaff.name} (${loggedInStaff.role.toUpperCase()})`, 'info');
     } catch (err: any) {
       console.error('Login error', err);
-      const msg = err.data?.error || err.message || 'Invalid Staff ID';
-      setErrorMessage(msg);
+      const msg = err.data?.error || err.message || 'Invalid Staff ID. Account not found.';
+      setErrorMsg(msg);
       showToast(msg, 'error');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  const handleQuickLogin = (quickId: string) => {
-    setStaffIdInput(quickId);
-    handleSubmit({ preventDefault: () => {} } as React.FormEvent, quickId);
+  const handleQuickLogin = (id: string) => {
+    setStaffId(id);
+    setErrorMsg('');
   };
 
   return (
-    <div className="w-full max-w-sm">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-[2px] bg-panel border border-border flex items-center justify-center font-bold text-xs text-text">
-            QC
+    <div className="min-h-screen bg-ink text-text flex items-center justify-center p-4 antialiased">
+      <div className="max-w-md w-full space-y-5">
+        {/* Terminal Header */}
+        <div className="text-center space-y-1">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-panel border border-border text-[11px] font-mono text-text-muted mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-status-stable" />
+            <span>QUARANTINE SURVEILLANCE SYSTEM</span>
           </div>
-          <span className="text-xs font-mono tracking-wider text-text-muted uppercase">
-            Quarantine Care
-          </span>
+          <h1 className="text-xl font-bold tracking-tight text-text font-mono">
+            Clinical Access Terminal
+          </h1>
+          <p className="text-xs text-text-muted">
+            Enter assigned Staff ID to authenticate clinical session.
+          </p>
         </div>
-        <h1 className="text-lg font-bold text-text tracking-tight">
-          Staff Authentication
-        </h1>
-        <p className="text-xs text-text-muted mt-0.5">
-          Enter your assigned Staff ID key to access clinical modules.
-        </p>
-      </div>
 
-      {/* Login Card */}
-      <div className="bg-panel border border-border p-5 rounded-[4px] space-y-4">
-        <form onSubmit={(e) => handleSubmit(e)} className="space-y-4">
-          <div>
-            <label
-              htmlFor="staffId"
-              className="block text-xs font-medium text-text-muted mb-1.5"
-            >
-              Staff ID
-            </label>
-            <input
-              id="staffId"
-              type="text"
-              value={staffIdInput}
-              onChange={(e) => {
-                setStaffIdInput(e.target.value);
-                if (errorMessage) setErrorMessage('');
-              }}
-              placeholder="e.g. N001, D001, A001"
-              autoCapitalize="characters"
-              autoComplete="off"
-              disabled={isSubmitting}
-              className="w-full bg-ink border border-border focus:border-text-muted text-text rounded-[3px] px-3 py-2 text-sm font-mono tracking-wider placeholder:font-sans placeholder:tracking-normal placeholder:text-text-muted/60 transition-colors outline-none"
-            />
+        {/* Login Panel */}
+        <div className="bg-panel border border-border rounded-[3px] p-5 space-y-4">
+          {errorMsg && (
+            <div className="p-3 rounded-[3px] bg-[#2A1E24] border-l-3 border-l-status-fever border border-border text-xs text-text flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-status-fever shrink-0 mt-0.5" />
+              <span className="font-mono">{errorMsg}</span>
+            </div>
+          )}
 
-            {errorMessage && (
-              <div className="mt-1.5 text-xs text-status-fever font-mono flex items-center gap-1">
-                <span>[!]</span>
-                <span>{errorMessage}</span>
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-mono uppercase text-text-muted mb-1.5 font-semibold">
+                Staff ID (Login Key)
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={staffId}
+                  onChange={(e) => {
+                    setStaffId(e.target.value.toUpperCase());
+                    if (errorMsg) setErrorMsg('');
+                  }}
+                  placeholder="e.g. N001, D001, A001"
+                  disabled={isLoading}
+                  className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3.5 py-2.5 text-sm font-mono tracking-wider focus:outline-none transition-colors placeholder:text-text-muted/40 uppercase"
+                />
               </div>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting || !staffIdInput.trim()}
-            className="w-full bg-btn hover:bg-btn-hover active:bg-btn-active border border-border disabled:opacity-50 text-text font-medium rounded-[3px] py-2 px-3 flex items-center justify-center gap-2 transition-colors text-xs"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Verifying ID...</span>
-              </>
-            ) : (
-              <>
-                <span>Authenticate</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </>
-            )}
-          </button>
-        </form>
-
-        {/* Prototype Quick Access */}
-        <div className="pt-4 border-t border-border space-y-2">
-          <div className="text-[10px] font-mono text-text-muted uppercase">
-            Quick ID Access (Seeded Roles)
-          </div>
-          <div className="grid grid-cols-3 gap-1.5">
-            <button
-              type="button"
-              onClick={() => handleQuickLogin('N001')}
-              disabled={isSubmitting}
-              className="px-2 py-1.5 rounded-[2px] border border-border bg-ink hover:bg-panel-hover text-left transition-colors"
-            >
-              <div className="font-mono text-xs font-bold text-text">N001</div>
-              <div className="text-[10px] text-text-muted">Nurse</div>
-            </button>
+            </div>
 
             <button
-              type="button"
-              onClick={() => handleQuickLogin('D001')}
-              disabled={isSubmitting}
-              className="px-2 py-1.5 rounded-[2px] border border-border bg-ink hover:bg-panel-hover text-left transition-colors"
+              type="submit"
+              disabled={isLoading || !staffId.trim()}
+              className="w-full bg-[#233546] hover:bg-[#2F4458] disabled:opacity-50 text-text font-bold font-mono py-2.5 px-4 rounded-[3px] border border-border flex items-center justify-center gap-2 text-xs transition-colors"
             >
-              <div className="font-mono text-xs font-bold text-text">D001</div>
-              <div className="text-[10px] text-text-muted">Doctor</div>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Verifying Credentials...</span>
+                </>
+              ) : (
+                <>
+                  <span>Authenticate Session</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-text-muted" />
+                </>
+              )}
             </button>
+          </form>
 
-            <button
-              type="button"
-              onClick={() => handleQuickLogin('A001')}
-              disabled={isSubmitting}
-              className="px-2 py-1.5 rounded-[2px] border border-border bg-ink hover:bg-panel-hover text-left transition-colors"
-            >
-              <div className="font-mono text-xs font-bold text-text">A001</div>
-              <div className="text-[10px] text-text-muted">Admin</div>
-            </button>
+          {/* Demo Staff ID Selector */}
+          <div className="pt-3 border-t border-border space-y-2">
+            <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider block">
+              Quick Prototype Credentials
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('N001')}
+                className="p-2 rounded-[3px] bg-[#0B1118] border border-border hover:border-[#4E677E] text-left transition-colors"
+              >
+                <div className="flex items-center justify-between text-[11px] font-mono font-bold text-text">
+                  <span>N001</span>
+                </div>
+                <div className="text-[10px] text-text-muted mt-0.5">Nurse</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('D001')}
+                className="p-2 rounded-[3px] bg-[#0B1118] border border-border hover:border-[#4E677E] text-left transition-colors"
+              >
+                <div className="flex items-center justify-between text-[11px] font-mono font-bold text-text">
+                  <span>D001</span>
+                </div>
+                <div className="text-[10px] text-text-muted mt-0.5">Doctor</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('A001')}
+                className="p-2 rounded-[3px] bg-[#0B1118] border border-border hover:border-[#4E677E] text-left transition-colors"
+              >
+                <div className="flex items-center justify-between text-[11px] font-mono font-bold text-text">
+                  <span>A001</span>
+                </div>
+                <div className="text-[10px] text-text-muted mt-0.5">Admin</div>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
 
-export default function LoginPage() {
-  return (
-    <div className="min-h-screen bg-ink flex flex-col items-center justify-center p-4">
-      <Suspense
-        fallback={
-          <div className="text-text-muted text-xs font-mono">
-            Loading authentication module...
-          </div>
-        }
-      >
-        <LoginForm />
-      </Suspense>
+        {/* Footer Note */}
+        <div className="text-center text-[11px] font-mono text-text-muted">
+          Quarantine Care Management Suite • Bedside Clinical Prototype
+        </div>
+      </div>
     </div>
   );
 }

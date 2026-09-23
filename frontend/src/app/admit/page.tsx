@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Loader2,
   ShieldCheck,
+  Building,
 } from 'lucide-react';
 
 export default function AdmitPatientPage() {
@@ -87,8 +88,8 @@ export default function AdmitPatientPage() {
       });
 
       showToast(
-        `Patient ${patientName.trim()} admitted to ${selectedBed}. Notifications sent to clinical staff.`,
-        'success',
+        `Patient ${patientName.trim()} admitted to ${selectedBed}. Notifications dispatched.`,
+        'info',
         'Patient Admitted'
       );
 
@@ -126,22 +127,27 @@ export default function AdmitPatientPage() {
   return (
     <RoleGuard allowedRoles={['nurse', 'admin']}>
       <AppLayout>
-        <div className="space-y-6">
-          {/* Header */}
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+          {/* Header Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
             <div>
+              <div className="flex items-center gap-2 text-text-muted text-[11px] font-mono uppercase tracking-wider mb-1">
+                <span>Facility Logistics</span>
+                <span>•</span>
+                <span>Bed Allocation</span>
+              </div>
               <h1 className="text-xl font-bold text-text tracking-tight">
                 Patient Admission & 74-Bed Map
               </h1>
               <p className="text-xs text-text-muted mt-0.5">
-                Assign available quarantine beds, enforce 74-patient capacity limits, and notify clinical staff.
+                Assign available quarantine beds, enforce 74-patient capacity limits, and auto-dispatch clinical notifications.
               </p>
             </div>
 
             <button
               onClick={fetchBeds}
               disabled={isLoadingBeds}
-              className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] border border-border bg-panel hover:bg-[#1D2B3A] text-text-muted hover:text-text text-xs font-medium transition-colors"
+              className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-[#1D2B3A] text-text-muted hover:text-text text-xs font-medium transition-colors"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoadingBeds ? 'animate-spin' : ''}`} />
               <span>Refresh Map</span>
@@ -150,45 +156,45 @@ export default function AdmitPatientPage() {
 
           {/* Quick Metrics Bar */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-panel border border-border rounded-[4px] p-3 flex items-center justify-between">
+            <div className="bg-panel border border-border rounded-[3px] p-3.5 flex items-center justify-between">
               <div>
-                <span className="text-[11px] text-text-muted">Occupancy</span>
-                <div className="text-lg font-bold text-text mt-0.5 font-mono tabular-nums">
-                  {occupiedCount} <span className="text-xs text-text-muted font-normal">/ {capacity}</span>
+                <span className="text-[11px] font-mono uppercase text-text-muted">Total Occupancy</span>
+                <div className="text-xl font-bold text-text mt-0.5 font-mono tabular-nums">
+                  {occupiedCount} <span className="text-xs text-text-muted font-normal">/ {capacity} beds</span>
                 </div>
               </div>
-              <span className="text-xs font-mono tabular-nums text-text px-2 py-0.5 rounded-[3px] bg-[#0F1720] border border-border">
+              <span className="text-xs font-mono tabular-nums text-text px-2 py-0.5 rounded-[2px] bg-[#0B1118] border border-border">
                 {occupancyPercent}%
               </span>
             </div>
 
-            <div className="bg-panel border border-border rounded-[4px] p-3 flex items-center justify-between">
+            <div className="bg-panel border border-border rounded-[3px] p-3.5 flex items-center justify-between">
               <div>
-                <span className="text-[11px] text-text-muted">Available Beds</span>
-                <div className="text-lg font-bold text-text mt-0.5 font-mono tabular-nums">
+                <span className="text-[11px] font-mono uppercase text-text-muted">Available Capacity</span>
+                <div className="text-xl font-bold text-status-stable mt-0.5 font-mono tabular-nums">
                   {freeCount} Free
                 </div>
               </div>
               <span className="w-2.5 h-2.5 rounded-full bg-status-stable" />
             </div>
 
-            <div className="bg-panel border border-border rounded-[4px] p-3 flex items-center justify-between">
+            <div className="bg-panel border border-border rounded-[3px] p-3.5 flex items-center justify-between">
               <div>
-                <span className="text-[11px] text-text-muted">Wards</span>
-                <div className="text-xs font-medium text-text mt-1">
+                <span className="text-[11px] font-mono uppercase text-text-muted">Quarantine Wards</span>
+                <div className="text-xs font-semibold text-text mt-1 font-mono">
                   Zones A, B, C, D (74 total)
                 </div>
               </div>
-              <Bed className="w-4 h-4 text-text-muted" />
+              <Building className="w-4 h-4 text-text-muted" />
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left Column: 74-Bed Map Grid (7 Cols) */}
-            <div className="lg:col-span-7 bg-panel border border-border rounded-[4px] p-4 space-y-3">
+            <div className="lg:col-span-7 bg-panel border border-border rounded-[3px] p-4 space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
-                <h3 className="text-xs font-semibold text-text uppercase tracking-wide">
-                  Bed Grid Status
+                <h3 className="text-xs font-bold text-text font-mono uppercase tracking-wide">
+                  Bed Grid Matrix ({filteredBeds.length} units)
                 </h3>
 
                 {/* Zone Filter */}
@@ -197,9 +203,9 @@ export default function AdmitPatientPage() {
                     <button
                       key={zone}
                       onClick={() => setSelectedZone(zone)}
-                      className={`px-2 py-0.5 rounded-[3px] text-[11px] font-medium transition-colors ${
+                      className={`px-2.5 py-1 rounded-[2px] text-[11px] font-mono font-medium transition-colors ${
                         selectedZone === zone
-                          ? 'bg-[#233546] text-text border border-border'
+                          ? 'bg-[#0B1118] text-text border border-border font-bold'
                           : 'text-text-muted hover:text-text hover:bg-[#1D2B3A]'
                       }`}
                     >
@@ -210,9 +216,9 @@ export default function AdmitPatientPage() {
               </div>
 
               {isLoadingBeds ? (
-                <div className="py-20 flex flex-col items-center justify-center text-text-muted">
+                <div className="py-20 flex flex-col items-center justify-center text-text-muted font-mono">
                   <Loader2 className="w-6 h-6 animate-spin mb-2" />
-                  <p className="text-xs font-mono">Loading bed matrix...</p>
+                  <p className="text-xs">Loading bed matrix...</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-1.5 max-h-[480px] overflow-y-auto pr-1">
@@ -224,12 +230,12 @@ export default function AdmitPatientPage() {
                       <div
                         key={bed.bedNumber}
                         onClick={() => handleBedClick(bed)}
-                        className={`p-2 rounded-[4px] border transition-colors cursor-pointer flex flex-col justify-between min-h-[68px] ${
+                        className={`p-2 rounded-[3px] border transition-colors cursor-pointer flex flex-col justify-between min-h-[68px] ${
                           isSelected
-                            ? 'border-[#4B6275] bg-[#1E2D3C] ring-1 ring-[#4B6275]'
+                            ? 'border-[#4E677E] bg-[#1E2D3C] ring-1 ring-[#4E677E]'
                             : isOccupied
-                            ? 'border-border bg-[#101820] text-text-muted hover:border-[#384858]'
-                            : 'border-border bg-panel hover:bg-[#1C2937] hover:border-[#4B6275] text-text'
+                            ? 'border-border bg-[#0B1118] text-text-muted hover:border-[#384858]'
+                            : 'border-border bg-panel hover:bg-[#1C2937] hover:border-[#4E677E] text-text'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -245,11 +251,11 @@ export default function AdmitPatientPage() {
 
                         <div className="mt-1">
                           {isOccupied ? (
-                            <div className="text-[10px] text-text-muted truncate" title={bed.patientName || ''}>
+                            <div className="text-[10px] text-text-muted truncate font-mono" title={bed.patientName || ''}>
                               {bed.patientName}
                             </div>
                           ) : (
-                            <div className="text-[10px] text-text-muted">
+                            <div className="text-[10px] text-text-muted font-mono">
                               Available
                             </div>
                           )}
@@ -260,7 +266,7 @@ export default function AdmitPatientPage() {
                 </div>
               )}
 
-              <div className="flex items-center gap-4 pt-2 text-[11px] text-text-muted border-t border-border">
+              <div className="flex items-center gap-4 pt-2 text-[11px] text-text-muted border-t border-border font-mono">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-status-stable" />
                   <span>Available ({freeCount})</span>
@@ -275,23 +281,23 @@ export default function AdmitPatientPage() {
             {/* Right Column: Admission Form (5 Cols) */}
             <div
               id="admit-form"
-              className="lg:col-span-5 bg-panel border border-border rounded-[4px] p-4 space-y-4"
+              className="lg:col-span-5 bg-panel border border-border rounded-[3px] p-4 space-y-4"
             >
               <div className="pb-2 border-b border-border">
-                <h3 className="text-xs font-semibold text-text uppercase tracking-wide">
-                  Admit New Patient
+                <h3 className="text-xs font-bold text-text font-mono uppercase tracking-wide">
+                  Admit New Quarantine Patient
                 </h3>
               </div>
 
               {formError && (
-                <div className="p-2.5 rounded-[4px] bg-[#1E1719] border-l-2 border-l-status-fever border border-border text-xs text-text flex items-start gap-2">
+                <div className="p-2.5 rounded-[3px] bg-[#2A1E24] border-l-2 border-l-status-fever border border-border text-xs text-text flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 text-status-fever shrink-0 mt-0.5" />
-                  <span>{formError}</span>
+                  <span className="font-mono">{formError}</span>
                 </div>
               )}
 
               {freeCount === 0 && (
-                <div className="p-2.5 rounded-[4px] bg-[#221D15] border-l-2 border-l-status-pending border border-border text-xs text-text flex items-center gap-2">
+                <div className="p-2.5 rounded-[3px] bg-[#221D15] border-l-2 border-l-status-pending border border-border text-xs text-text flex items-center gap-2 font-mono">
                   <AlertTriangle className="w-4 h-4 text-status-pending shrink-0" />
                   <span>Facility is currently at full capacity (74/74 beds).</span>
                 </div>
@@ -299,7 +305,7 @@ export default function AdmitPatientPage() {
 
               <form onSubmit={handleAdmitSubmit} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-text mb-1.5">
+                  <label className="block text-xs font-mono uppercase text-text-muted mb-1.5 font-semibold">
                     Patient Full Name *
                   </label>
                   <input
@@ -312,12 +318,12 @@ export default function AdmitPatientPage() {
                     }}
                     placeholder="e.g. Samuel Jackson"
                     disabled={isSubmitting || freeCount === 0}
-                    className="w-full bg-[#0F1720] border border-border focus:border-[#4B6275] text-text rounded-[4px] px-3 py-2 text-xs focus:outline-none transition-colors"
+                    className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-text mb-1.5">
+                  <label className="block text-xs font-mono uppercase text-text-muted mb-1.5 font-semibold">
                     Assigned Bed *
                   </label>
                   <select
@@ -328,9 +334,9 @@ export default function AdmitPatientPage() {
                       if (formError) setFormError('');
                     }}
                     disabled={isSubmitting || freeCount === 0}
-                    className="w-full bg-[#0F1720] border border-border focus:border-[#4B6275] text-text rounded-[4px] px-3 py-2 text-xs focus:outline-none font-mono tabular-nums transition-colors"
+                    className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none font-mono tabular-nums transition-colors"
                   >
-                    <option value="">-- Select Bed --</option>
+                    <option value="">-- Choose an Available Bed --</option>
                     {freeBedsList.map((bed) => (
                       <option key={bed.bedNumber} value={bed.bedNumber}>
                         {bed.bedNumber} ({bed.zone.split(' ')[0]})
@@ -340,23 +346,23 @@ export default function AdmitPatientPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-text mb-1.5">
+                  <label className="block text-xs font-mono uppercase text-text-muted mb-1.5 font-semibold">
                     Intake Notes (Optional)
                   </label>
                   <textarea
                     rows={3}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Intake symptoms, contact tracing history..."
+                    placeholder="Intake symptoms, contact tracing history, emergency contact..."
                     disabled={isSubmitting || freeCount === 0}
-                    className="w-full bg-[#0F1720] border border-border focus:border-[#4B6275] text-text rounded-[4px] p-2.5 text-xs focus:outline-none resize-none transition-colors"
+                    className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none transition-colors"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting || freeCount === 0 || !patientName.trim() || !selectedBed}
-                  className="w-full bg-[#223548] hover:bg-[#2d465f] disabled:opacity-50 text-text font-semibold py-2 px-3 rounded-[4px] border border-border flex items-center justify-center gap-1.5 text-xs transition-colors"
+                  className="w-full bg-[#233546] hover:bg-[#2F4458] disabled:opacity-50 text-text font-bold font-mono py-2.5 px-3 rounded-[3px] border border-border flex items-center justify-center gap-1.5 text-xs transition-colors"
                 >
                   {isSubmitting ? (
                     <>
@@ -372,9 +378,9 @@ export default function AdmitPatientPage() {
                 </button>
               </form>
 
-              <div className="pt-2 border-t border-border text-[11px] text-text-muted flex items-center gap-1.5">
+              <div className="pt-2 border-t border-border text-[11px] text-text-muted flex items-center gap-1.5 font-mono">
                 <ShieldCheck className="w-3.5 h-3.5 text-text-muted shrink-0" />
-                <span>Admission auto-notifies attending nurses and physicians.</span>
+                <span>Admission generates automatic notifications to attending staff.</span>
               </div>
             </div>
           </div>

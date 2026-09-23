@@ -18,8 +18,6 @@ import {
   Sparkles,
   AlertTriangle,
   CheckCircle2,
-  UserCheck,
-  Shield,
   Loader2,
   UserPlus,
   Copy,
@@ -27,7 +25,6 @@ import {
   ToggleLeft,
   ToggleRight,
   KeyRound,
-  ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -108,7 +105,7 @@ export default function AdminDashboard() {
       );
       showToast(
         `Staff ${staffMember.staffId} (${staffMember.name}) ${newStatus ? 'activated' : 'deactivated'}`,
-        newStatus ? 'success' : 'warning'
+        newStatus ? 'info' : 'warning'
       );
     } catch (err: any) {
       console.error('Toggle staff error', err);
@@ -146,7 +143,7 @@ export default function AdminDashboard() {
       });
       setHasCopiedId(false);
 
-      showToast(`Created staff account for ${res.staff.name}`, 'success', 'Staff Added');
+      showToast(`Created staff account for ${res.staff.name}`, 'info', 'Staff Added');
       await fetchStaffList();
     } catch (err: any) {
       console.error('Create staff error', err);
@@ -160,7 +157,7 @@ export default function AdminDashboard() {
     if (!createdStaffInfo) return;
     navigator.clipboard.writeText(createdStaffInfo.staffId);
     setHasCopiedId(true);
-    showToast(`Copied ${createdStaffInfo.staffId} to clipboard`, 'success');
+    showToast(`Copied ${createdStaffInfo.staffId} to clipboard`, 'info');
     setTimeout(() => setHasCopiedId(false), 2500);
   };
 
@@ -174,25 +171,30 @@ export default function AdminDashboard() {
   return (
     <RoleGuard allowedRoles={['admin']}>
       <AppLayout>
-        <div className="space-y-6">
-          {/* Header */}
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+          {/* Header Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
             <div>
+              <div className="flex items-center gap-2 text-text-muted text-[11px] font-mono uppercase tracking-wider mb-1">
+                <span>Facility Administration</span>
+                <span>•</span>
+                <span>Operations</span>
+              </div>
               <h1 className="text-xl font-bold text-text tracking-tight">
-                Facility Executive Dashboard
+                Executive Command Console
               </h1>
               <p className="text-xs text-text-muted mt-0.5">
-                Quarantine capacity surveillance, epidemiological mortality thresholds, and staff access control.
+                Surveillance metrics, capacity tracking, epidemiological thresholds, and staff access control.
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <Link
                 href="/admit"
-                className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-[#223548] hover:bg-[#2d465f] text-text border border-border text-xs font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text text-xs border border-border font-medium transition-colors"
               >
                 <Bed className="w-3.5 h-3.5 text-text-muted" />
-                <span>Admit & Bed Map</span>
+                <span>Admit / Bed Map</span>
               </Link>
 
               <button
@@ -201,7 +203,7 @@ export default function AdminDashboard() {
                   if (activeTab === 'staff') fetchStaffList();
                 }}
                 disabled={isLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] border border-border bg-panel hover:bg-[#1D2B3A] text-text-muted hover:text-text text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-[#1D2B3A] text-text-muted hover:text-text text-xs font-medium transition-colors"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                 <span className="hidden sm:inline">Refresh</span>
@@ -211,22 +213,22 @@ export default function AdminDashboard() {
 
           {/* CRITICAL MORTALITY ALERT BANNER */}
           {hasMortalityAlert && (
-            <div className="p-4 rounded-[4px] bg-panel border-l-4 border-l-status-fever border border-border flex items-start gap-3">
+            <div className="p-4 rounded-[3px] bg-[#1B1417] border-l-4 border-l-status-fever border border-border flex items-start gap-3">
               <div className="p-1 rounded bg-[#2A1E24] text-status-fever shrink-0 mt-0.5">
                 <ShieldAlert className="w-5 h-5 text-status-fever" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-bold text-text uppercase tracking-wide">
-                    Critical Alert: High Mortality Rate
+                  <h3 className="text-xs font-bold text-text uppercase tracking-wide font-mono">
+                    Epidemiological Threshold Alert: High Mortality Rate
                   </h3>
-                  <span className="font-mono tabular-nums text-xs px-1.5 py-0.5 rounded-[3px] bg-status-fever text-white font-bold">
+                  <span className="font-mono tabular-nums text-xs px-1.5 py-0.5 rounded-[2px] bg-status-fever text-white font-bold">
                     {mortalityPercent}%
                   </span>
                 </div>
                 <p className="text-xs text-text-muted mt-1 leading-relaxed">
-                  Facility mortality has crossed the epidemiological safety threshold of{' '}
-                  <span className="font-mono tabular-nums font-semibold text-text">15.0%</span>. Immediate clinical review is recommended.
+                  Facility mortality has exceeded the safety benchmark of{' '}
+                  <span className="font-mono tabular-nums font-semibold text-text">15.0%</span>. Immediate clinical protocol audit is recommended.
                 </p>
               </div>
             </div>
@@ -236,9 +238,9 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-1 border-b border-border pb-2">
             <button
               onClick={() => setActiveTab('metrics')}
-              className={`px-3 py-1.5 rounded-[4px] text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-[3px] text-xs font-mono transition-colors flex items-center gap-1.5 ${
                 activeTab === 'metrics'
-                  ? 'bg-[#233546] text-text border border-border'
+                  ? 'bg-[#0B1118] text-text font-bold border border-border'
                   : 'text-text-muted hover:text-text hover:bg-panel'
               }`}
             >
@@ -248,41 +250,38 @@ export default function AdminDashboard() {
 
             <button
               onClick={() => setActiveTab('staff')}
-              className={`px-3 py-1.5 rounded-[4px] text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-[3px] text-xs font-mono transition-colors flex items-center gap-1.5 ${
                 activeTab === 'staff'
-                  ? 'bg-[#233546] text-text border border-border'
+                  ? 'bg-[#0B1118] text-text font-bold border border-border'
                   : 'text-text-muted hover:text-text hover:bg-panel'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
-              <span>Staff Management</span>
+              <span>Staff Management ({staffList.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('queue')}
-              className={`px-3 py-1.5 rounded-[4px] text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-[3px] text-xs font-mono transition-colors flex items-center gap-1.5 ${
                 activeTab === 'queue'
-                  ? 'bg-[#233546] text-text border border-border'
+                  ? 'bg-[#0B1118] text-text font-bold border border-border'
                   : 'text-text-muted hover:text-text hover:bg-panel'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Discharge Queue</span>
-              <span className="font-mono tabular-nums px-1.5 py-0.2 rounded bg-[#101922] text-[11px] text-text-muted border border-border">
-                {dischargeQueue.length}
-              </span>
+              <span>Discharge Queue ({dischargeQueue.length})</span>
             </button>
           </div>
 
           {/* TAB 1: METRICS OVERVIEW */}
           {activeTab === 'metrics' && (
             <div className="space-y-6">
-              {/* Key Flat Stat Panels */}
+              {/* Flat Stat Panels */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 1. Bed Capacity & Occupancy */}
-                <div className="bg-panel border border-border rounded-[4px] p-4 flex flex-col justify-between">
+                <div className="bg-panel border border-border rounded-[3px] p-4 flex flex-col justify-between">
                   <div>
-                    <div className="text-xs text-text-muted mb-1">Bed Occupancy</div>
+                    <div className="text-[11px] font-mono uppercase text-text-muted mb-1">Bed Occupancy</div>
                     <div className="flex items-baseline gap-2">
                       <span className="text-3xl font-bold text-text font-mono tabular-nums">
                         {occupied}
@@ -294,11 +293,11 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-border">
-                    <div className="flex items-center justify-between text-xs text-text-muted mb-1">
+                    <div className="flex items-center justify-between text-xs text-text-muted mb-1 font-mono">
                       <span>Utilization</span>
-                      <span className="font-mono tabular-nums text-text font-medium">{occupancyPercent}%</span>
+                      <span className="tabular-nums text-text font-medium">{occupancyPercent}%</span>
                     </div>
-                    <div className="w-full h-1.5 bg-[#0F1720] rounded-full overflow-hidden border border-border">
+                    <div className="w-full h-1.5 bg-[#0B1118] rounded-full overflow-hidden border border-border">
                       <div
                         className="h-full bg-text-muted transition-all duration-300"
                         style={{ width: `${Math.min(occupancyPercent, 100)}%` }}
@@ -308,9 +307,9 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* 2. Recovery Rate */}
-                <div className="bg-panel border border-border rounded-[4px] p-4 flex flex-col justify-between">
+                <div className="bg-panel border border-border rounded-[3px] p-4 flex flex-col justify-between">
                   <div>
-                    <div className="text-xs text-text-muted mb-1">Recovery Rate</div>
+                    <div className="text-[11px] font-mono uppercase text-text-muted mb-1">Recovery Rate</div>
                     <div className="flex items-baseline gap-2">
                       <span className="text-3xl font-bold text-text font-mono tabular-nums">
                         {successPercent}%
@@ -318,25 +317,25 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-border text-xs text-text-muted flex items-center justify-between">
-                    <span>Target benchmark</span>
-                    <span className="font-mono tabular-nums text-text">85.0%</span>
+                  <div className="mt-4 pt-3 border-t border-border text-xs text-text-muted flex items-center justify-between font-mono">
+                    <span>Benchmark Standard</span>
+                    <span className="tabular-nums text-text">85.0%</span>
                   </div>
                 </div>
 
-                {/* 3. Mortality Rate (Alert hairline top border if > 15%) */}
+                {/* 3. Mortality Rate (Alert Hairline Top Border if > 15%) */}
                 <div
-                  className={`bg-panel border rounded-[4px] p-4 flex flex-col justify-between ${
+                  className={`bg-panel border rounded-[3px] p-4 flex flex-col justify-between ${
                     hasMortalityAlert
-                      ? 'border-border border-t-2 border-t-status-fever'
+                      ? 'border-border border-t-2 border-t-status-fever bg-[#1A1417]'
                       : 'border-border'
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between text-text-muted mb-1">
-                      <span className="text-xs">Mortality Rate</span>
+                      <span className="text-[11px] font-mono uppercase">Mortality Rate</span>
                       {hasMortalityAlert && (
-                        <span className="w-2 h-2 rounded-full bg-status-fever" />
+                        <span className="w-2 h-2 rounded-full bg-status-fever animate-pulse" />
                       )}
                     </div>
                     <div className="flex items-baseline gap-2">
@@ -353,30 +352,30 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-border text-xs text-text-muted flex items-center justify-between">
-                    <span>Threshold</span>
-                    <span className={`font-mono tabular-nums ${hasMortalityAlert ? 'text-status-fever font-semibold' : 'text-text'}`}>
-                      &gt; 15.0%
+                  <div className="mt-4 pt-3 border-t border-border text-xs text-text-muted flex items-center justify-between font-mono">
+                    <span>Safety Threshold</span>
+                    <span className={`tabular-nums ${hasMortalityAlert ? 'text-status-fever font-bold' : 'text-text'}`}>
+                      &le; 15.0%
                     </span>
                   </div>
                 </div>
 
                 {/* 4. Total Throughput */}
-                <div className="bg-panel border border-border rounded-[4px] p-4 flex flex-col justify-between">
+                <div className="bg-panel border border-border rounded-[3px] p-4 flex flex-col justify-between">
                   <div>
-                    <div className="text-xs text-text-muted mb-1">Total Admitted</div>
+                    <div className="text-[11px] font-mono uppercase text-text-muted mb-1">Total Throughput</div>
                     <div className="flex items-baseline gap-2">
                       <span className="text-3xl font-bold text-text font-mono tabular-nums">
                         {stats?.totalAdmitted ?? 0}
                       </span>
-                      <span className="text-xs text-text-muted">cases</span>
+                      <span className="text-xs text-text-muted font-mono">cases</span>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-border text-xs text-text-muted flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-border text-xs text-text-muted flex items-center justify-between font-mono">
                     <span>Discharged</span>
-                    <span className="font-mono tabular-nums text-text">
-                      {stats?.dischargedCount ?? 0}
+                    <span className="tabular-nums text-text">
+                      {stats?.dischargedCount ?? 0} patients
                     </span>
                   </div>
                 </div>
@@ -386,11 +385,11 @@ export default function AdminDashboard() {
 
           {/* TAB 2: STAFF MANAGEMENT */}
           {activeTab === 'staff' && (
-            <div className="bg-panel border border-border rounded-[4px] p-4 space-y-4">
+            <div className="bg-panel border border-border rounded-[3px] p-4 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
                 <div>
-                  <h3 className="text-sm font-bold text-text">
-                    Staff Directory & Access Control
+                  <h3 className="text-sm font-bold text-text font-mono uppercase">
+                    Staff Directory & Credentials
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
                     Generate incrementing Staff ID login keys and toggle access permissions.
@@ -399,22 +398,22 @@ export default function AdminDashboard() {
 
                 <button
                   onClick={() => setShowAddStaffModal(true)}
-                  className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] bg-[#223548] hover:bg-[#2d465f] text-text border border-border text-xs font-semibold transition-colors"
+                  className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text border border-border text-xs font-semibold font-mono transition-colors"
                 >
                   <UserPlus className="w-3.5 h-3.5 text-text-muted" />
-                  <span>Add Staff Member</span>
+                  <span>Onboard Staff Member</span>
                 </button>
               </div>
 
               {isLoadingStaff ? (
-                <div className="py-16 flex flex-col items-center justify-center text-text-muted">
-                  <Loader2 className="w-6 h-6 animate-spin mb-2" />
-                  <p className="text-xs font-mono">Loading staff accounts...</p>
+                <div className="py-16 flex flex-col items-center justify-center text-text-muted font-mono">
+                  <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                  <p className="text-xs">Loading staff accounts...</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto border border-border rounded-[4px]">
+                <div className="overflow-x-auto border border-border rounded-[3px]">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#0F1720] text-text-muted uppercase text-[10px] border-b border-border">
+                    <thead className="bg-[#0B1118] text-text-muted uppercase text-[10px] font-mono border-b border-border">
                       <tr>
                         <th className="py-2.5 px-3 font-semibold">Staff ID</th>
                         <th className="py-2.5 px-3 font-semibold">Name</th>
@@ -426,14 +425,14 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody className="divide-y divide-border text-text">
                       {staffList.map((member) => (
-                        <tr key={member._id} className="hover:bg-[#1B2734] transition-colors">
+                        <tr key={member._id} className="hover:bg-[#1C2B39] transition-colors">
                           <td className="py-2.5 px-3 font-mono tabular-nums font-bold text-text">
                             {member.staffId}
                           </td>
                           <td className="py-2.5 px-3 font-medium text-text">
                             {member.name}
                           </td>
-                          <td className="py-2.5 px-3 capitalize text-text-muted">
+                          <td className="py-2.5 px-3 capitalize text-text-muted font-mono text-[11px]">
                             {member.role}
                           </td>
                           <td className="py-2.5 px-3">
@@ -443,7 +442,7 @@ export default function AdminDashboard() {
                                   member.active !== false ? 'bg-status-stable' : 'bg-[#55697A]'
                                 }`}
                               />
-                              <span className="text-[11px] text-text-muted">
+                              <span className="text-[11px] text-text-muted font-mono">
                                 {member.active !== false ? 'Active' : 'Deactivated'}
                               </span>
                             </div>
@@ -456,10 +455,10 @@ export default function AdminDashboard() {
                           <td className="py-2.5 px-3 text-right">
                             <button
                               onClick={() => handleToggleStaffActive(member)}
-                              className={`px-2.5 py-1 rounded-[3px] text-xs font-medium transition-colors border ${
+                              className={`px-2.5 py-1 rounded-[3px] text-xs font-mono font-medium transition-colors border ${
                                 member.active !== false
-                                  ? 'bg-[#1D2B3A] hover:bg-[#2A3D52] text-text border-border'
-                                  : 'bg-[#1D2B3A] hover:bg-[#2A3D52] text-text-muted border-border'
+                                  ? 'bg-[#0B1118] hover:bg-[#233546] text-text border-border'
+                                  : 'bg-[#0B1118] hover:bg-[#233546] text-text-muted border-border'
                               }`}
                             >
                               {member.active !== false ? 'Deactivate' : 'Reactivate'}
@@ -476,30 +475,30 @@ export default function AdminDashboard() {
 
           {/* TAB 3: DISCHARGE QUEUE */}
           {activeTab === 'queue' && (
-            <div className="bg-panel border border-border rounded-[4px] p-4 space-y-4">
+            <div className="bg-panel border border-border rounded-[3px] p-4 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
                 <div>
-                  <h3 className="text-sm font-bold text-text">
+                  <h3 className="text-sm font-bold text-text font-mono uppercase">
                     Clinical Discharge Queue
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
-                    Patients who have completed 3+ consecutive fever-free days awaiting physician discharge clearance.
+                    Patients who have completed 3+ consecutive fever-free days awaiting physician clearance.
                   </p>
                 </div>
 
-                <div className="text-xs font-mono tabular-nums text-text-muted border border-border px-2.5 py-1 rounded-[3px] bg-[#0F1720]">
+                <div className="text-xs font-mono tabular-nums text-text-muted border border-border px-2.5 py-1 rounded-[2px] bg-[#0B1118]">
                   {dischargeQueue.length} eligible
                 </div>
               </div>
 
               {dischargeQueue.length === 0 ? (
-                <div className="text-center py-12 text-text-muted border border-dashed border-border rounded-[4px]">
-                  <p className="text-xs">No pending discharges in the queue.</p>
+                <div className="text-center py-12 text-text-muted border border-dashed border-border rounded-[3px] font-mono text-xs">
+                  NO PENDING DISCHARGES IN FACILITY QUEUE
                 </div>
               ) : (
-                <div className="overflow-x-auto border border-border rounded-[4px]">
+                <div className="overflow-x-auto border border-border rounded-[3px]">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#0F1720] text-text-muted uppercase text-[10px] border-b border-border">
+                    <thead className="bg-[#0B1118] text-text-muted uppercase text-[10px] font-mono border-b border-border">
                       <tr>
                         <th className="py-2.5 px-3 font-semibold">Bed</th>
                         <th className="py-2.5 px-3 font-semibold">Patient</th>
@@ -512,7 +511,7 @@ export default function AdminDashboard() {
                       {dischargeQueue.map((patient) => (
                         <tr
                           key={patient._id}
-                          className="hover:bg-[#1B2734] transition-colors border-l-[3px] border-l-status-stable"
+                          className="hover:bg-[#1C2B39] transition-colors border-l-[3px] border-l-status-stable"
                         >
                           <td className="py-2.5 px-3 font-mono tabular-nums font-bold text-text">
                             {patient.bedNumber}
@@ -529,8 +528,8 @@ export default function AdminDashboard() {
                           <td className="py-2.5 px-3 font-mono tabular-nums font-semibold text-text">
                             {patient.eligibility?.consecutiveFeverFreeDays ?? 3} days
                           </td>
-                          <td className="py-2.5 px-3 text-text-muted text-[11px]">
-                            Awaiting Doctor Clearance
+                          <td className="py-2.5 px-3 text-text-muted text-[11px] font-mono">
+                            Awaiting Physician Sign-off
                           </td>
                         </tr>
                       ))}
@@ -542,7 +541,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Add Staff Modal */}
+        {/* ADD STAFF MODAL */}
         <Modal
           isOpen={showAddStaffModal}
           onClose={() => setShowAddStaffModal(false)}
@@ -552,7 +551,7 @@ export default function AdminDashboard() {
         >
           <form onSubmit={handleAddStaffSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-text mb-1.5">
+              <label className="block text-xs font-mono uppercase text-text-muted mb-1.5 font-semibold">
                 Staff Full Name *
               </label>
               <input
@@ -562,19 +561,19 @@ export default function AdminDashboard() {
                 onChange={(e) => setNewStaffName(e.target.value)}
                 placeholder="e.g. Dr. Rebecca Stone, MD"
                 disabled={isSubmittingStaff}
-                className="w-full bg-[#0F1720] border border-border focus:border-[#4B6275] text-text rounded-[4px] px-3 py-2 text-xs focus:outline-none transition-colors"
+                className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text mb-1.5">
+              <label className="block text-xs font-mono uppercase text-text-muted mb-1.5 font-semibold">
                 Staff Role *
               </label>
               <select
                 value={newStaffRole}
                 onChange={(e) => setNewStaffRole(e.target.value as StaffRole)}
                 disabled={isSubmittingStaff}
-                className="w-full bg-[#0F1720] border border-border focus:border-[#4B6275] text-text rounded-[4px] px-3 py-2 text-xs focus:outline-none transition-colors"
+                className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none transition-colors font-mono"
               >
                 <option value="nurse">Nurse (ID Prefix: N)</option>
                 <option value="doctor">Doctor (ID Prefix: D)</option>
@@ -586,7 +585,7 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => setShowAddStaffModal(false)}
-                className="flex-1 px-3 py-2 rounded-[4px] border border-border bg-panel hover:bg-[#1D2B3A] text-text-muted text-xs font-medium transition-colors"
+                className="flex-1 px-3 py-2 rounded-[3px] border border-border bg-[#16212C] hover:bg-[#1C2B39] text-text-muted text-xs font-mono transition-colors"
               >
                 Cancel
               </button>
@@ -594,7 +593,7 @@ export default function AdminDashboard() {
               <button
                 type="submit"
                 disabled={isSubmittingStaff || !newStaffName.trim()}
-                className="flex-1 px-3 py-2 rounded-[4px] bg-[#223548] hover:bg-[#2d465f] text-text border border-border text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 px-3 py-2 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text border border-border text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5"
               >
                 {isSubmittingStaff ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -609,36 +608,36 @@ export default function AdminDashboard() {
           </form>
         </Modal>
 
-        {/* Post-Creation Copyable Staff ID Modal */}
+        {/* POST-CREATION COPYABLE ID MODAL */}
         <Modal
           isOpen={!!createdStaffInfo}
           onClose={() => setCreatedStaffInfo(null)}
-          title="Staff Account Created"
+          title="Staff Account Provisioned"
           maxWidth="sm"
         >
           {createdStaffInfo && (
             <div className="space-y-4">
               <div>
                 <h4 className="text-sm font-semibold text-text">{createdStaffInfo.name}</h4>
-                <p className="text-xs text-text-muted capitalize">Role: {createdStaffInfo.role}</p>
+                <p className="text-xs text-text-muted capitalize font-mono">Role: {createdStaffInfo.role}</p>
               </div>
 
-              <div className="bg-[#0F1720] border border-border rounded-[4px] p-3 space-y-1.5">
-                <span className="text-[11px] text-text-muted uppercase">
+              <div className="bg-[#0B1118] border border-border rounded-[3px] p-3 space-y-1.5">
+                <span className="text-[10px] font-mono text-text-muted uppercase">
                   Assigned Staff ID (Login Key)
                 </span>
                 <div className="text-2xl font-bold font-mono tabular-nums text-text tracking-wider">
                   {createdStaffInfo.staffId}
                 </div>
                 <p className="text-[11px] text-text-muted leading-tight">
-                  There are no passwords. Provide this Staff ID to the employee to sign in.
+                  Provide this Staff ID to the employee to authenticate.
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={handleCopyStaffId}
-                className="w-full py-2 px-3 rounded-[4px] bg-[#223548] hover:bg-[#2d465f] text-text border border-border font-semibold text-xs flex items-center justify-center gap-2 transition-colors"
+                className="w-full py-2 px-3 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text border border-border font-bold font-mono text-xs flex items-center justify-center gap-2 transition-colors"
               >
                 {hasCopiedId ? (
                   <>

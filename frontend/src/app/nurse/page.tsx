@@ -6,7 +6,7 @@ import { RoleGuard } from '../../components/RoleGuard';
 import { Modal } from '../../components/Modal';
 import { TemperatureChart } from '../../components/TemperatureChart';
 import { useToast } from '../../context/ToastContext';
-import { api, ApiError } from '../../lib/api';
+import { api } from '../../lib/api';
 import { Patient, PatientDetailResponse, TemperatureLog } from '../../types';
 import {
   Thermometer,
@@ -16,6 +16,10 @@ import {
   Loader2,
   ChevronRight,
   Bed,
+  Calendar,
+  Clock,
+  User,
+  AlertTriangle,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -94,7 +98,7 @@ export default function NurseDashboard() {
 
       showToast(
         `Recorded ${newLog.value}°F ${newLog.hasFever ? '(Fever)' : '(Stable)'}`,
-        newLog.hasFever ? 'warning' : 'info'
+        newLog.hasFever ? 'error' : 'info'
       );
 
       setTempInput('');
@@ -146,22 +150,27 @@ export default function NurseDashboard() {
   return (
     <RoleGuard allowedRoles={['nurse']}>
       <AppLayout>
-        <div className="p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto space-y-5">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+          {/* Header Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
             <div>
-              <h1 className="text-base font-bold text-text tracking-tight uppercase font-mono">
-                Patient Directory — Nurse Station
+              <div className="flex items-center gap-2 text-text-muted text-[11px] font-mono uppercase tracking-wider mb-1">
+                <span>Clinical Monitoring</span>
+                <span>•</span>
+                <span>Quarantine Ward</span>
+              </div>
+              <h1 className="text-xl font-bold text-text tracking-tight">
+                Nurse Vitals Station
               </h1>
               <p className="text-xs text-text-muted mt-0.5">
-                Bedside vital sign logging and fever tracking for active quarantine beds.
+                Bedside temperature logging and active quarantine fever surveillance.
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <Link
                 href="/admit"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-btn hover:bg-btn-hover text-text text-xs border border-border font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text text-xs border border-border font-medium transition-colors"
               >
                 <Bed className="w-3.5 h-3.5 text-text-muted" />
                 <span>Admit / Bed Map</span>
@@ -170,10 +179,11 @@ export default function NurseDashboard() {
               <button
                 onClick={fetchPatients}
                 disabled={isLoading}
-                className="p-1.5 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text-muted hover:text-text transition-colors"
-                title="Refresh"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-[#1D2B3A] text-text-muted hover:text-text text-xs font-medium transition-colors"
+                title="Refresh Patients"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Refresh</span>
               </button>
             </div>
           </div>
@@ -187,8 +197,8 @@ export default function NurseDashboard() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search bed or patient..."
-                className="w-full pl-8 pr-3 py-1.5 bg-panel border border-border text-xs text-text rounded-[3px] focus:outline-none focus:border-text-muted placeholder:text-text-muted/60"
+                placeholder="Filter by bed (e.g. Bed A-101) or patient name..."
+                className="w-full pl-8 pr-3 py-1.5 bg-[#0B1118] border border-border text-xs text-text rounded-[3px] focus:outline-none focus:border-[#4E677E] placeholder:text-text-muted/60 font-mono"
               />
             </div>
 
@@ -196,9 +206,9 @@ export default function NurseDashboard() {
             <div className="flex items-center gap-1 p-0.5 bg-panel border border-border rounded-[3px]">
               <button
                 onClick={() => setStatusFilter('all')}
-                className={`px-2.5 py-1 text-xs font-mono transition-colors rounded-[2px] ${
+                className={`px-3 py-1 text-xs font-mono transition-colors rounded-[2px] ${
                   statusFilter === 'all'
-                    ? 'bg-ink text-text font-bold border border-border'
+                    ? 'bg-[#0B1118] text-text font-bold border border-border'
                     : 'text-text-muted hover:text-text'
                 }`}
               >
@@ -206,20 +216,20 @@ export default function NurseDashboard() {
               </button>
               <button
                 onClick={() => setStatusFilter('pending')}
-                className={`px-2.5 py-1 text-xs font-mono transition-colors rounded-[2px] flex items-center gap-1.5 ${
+                className={`px-3 py-1 text-xs font-mono transition-colors rounded-[2px] flex items-center gap-1.5 ${
                   statusFilter === 'pending'
-                    ? 'bg-ink text-text font-bold border border-border'
+                    ? 'bg-[#0B1118] text-text font-bold border border-border'
                     : 'text-text-muted hover:text-text'
                 }`}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-status-pending" />
-                <span>Pending ({pendingCount})</span>
+                <span>Pending Log ({pendingCount})</span>
               </button>
               <button
                 onClick={() => setStatusFilter('recorded')}
-                className={`px-2.5 py-1 text-xs font-mono transition-colors rounded-[2px] flex items-center gap-1.5 ${
+                className={`px-3 py-1 text-xs font-mono transition-colors rounded-[2px] flex items-center gap-1.5 ${
                   statusFilter === 'recorded'
-                    ? 'bg-ink text-text font-bold border border-border'
+                    ? 'bg-[#0B1118] text-text font-bold border border-border'
                     : 'text-text-muted hover:text-text'
                 }`}
               >
@@ -232,48 +242,44 @@ export default function NurseDashboard() {
           {/* DENSE SINGLE-COLUMN PATIENT TABLE/LIST */}
           <div className="border border-border bg-panel rounded-[3px] overflow-hidden">
             {isLoading ? (
-              <div className="py-12 text-center text-xs text-text-muted font-mono">
-                Loading patient records...
+              <div className="py-16 text-center text-xs text-text-muted font-mono flex flex-col items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Loading active patient census...</span>
               </div>
             ) : filteredPatients.length === 0 ? (
-              <div className="py-12 text-center text-xs text-text-muted">
-                No active patients found matching filter.
+              <div className="py-12 text-center text-xs text-text-muted font-mono">
+                NO PATIENTS MATCHING ACTIVE FILTER
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-border bg-ink text-text-muted text-[11px] font-mono uppercase">
+                    <tr className="border-b border-border bg-[#0B1118] text-text-muted text-[10px] font-mono uppercase">
                       <th className="py-2.5 px-4 font-semibold">Bed</th>
                       <th className="py-2.5 px-4 font-semibold">Patient Name</th>
-                      <th className="py-2.5 px-4 font-semibold">Admitted</th>
+                      <th className="py-2.5 px-4 font-semibold">Admitted Date</th>
                       <th className="py-2.5 px-4 font-semibold">Latest Temp</th>
-                      <th className="py-2.5 px-4 font-semibold">Fever-Free Days</th>
-                      <th className="py-2.5 px-4 font-semibold">Status</th>
-                      <th className="py-2.5 px-3 text-right">Action</th>
+                      <th className="py-2.5 px-4 font-semibold">Daily Status</th>
+                      <th className="py-2.5 px-4 font-semibold text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/60">
+                  <tbody className="divide-y divide-border">
                     {filteredPatients.map((patient) => {
-                      const hasTempToday = patient.tempLoggedToday;
-                      const hasFever = patient.latestTemperature?.hasFever;
-                      const feverFreeDays = patient.consecutiveFeverFreeDays ?? 0;
+                      const latest = patient.latestTemperature || patient.latestTemp;
+                      const hasFever = latest?.hasFever;
+                      const isLogged = patient.tempLoggedToday;
 
-                      // 3px colored left-border on the row
-                      // fever = status-fever, stable = status-stable, pending = status-pending
-                      let borderStatusClass = 'border-l-[3px] border-l-status-pending';
-                      let dotColor = 'bg-status-pending';
-                      let statusText = 'Pending Log';
+                      // Functional Left Border Status Color Rule
+                      let borderClass = 'border-l-status-pending';
+                      let dotClass = 'bg-status-pending';
 
-                      if (hasTempToday) {
+                      if (isLogged) {
                         if (hasFever) {
-                          borderStatusClass = 'border-l-[3px] border-l-status-fever';
-                          dotColor = 'bg-status-fever';
-                          statusText = 'Fever Logged';
+                          borderClass = 'border-l-status-fever';
+                          dotClass = 'bg-status-fever';
                         } else {
-                          borderStatusClass = 'border-l-[3px] border-l-status-stable';
-                          dotColor = 'bg-status-stable';
-                          statusText = 'Stable';
+                          borderClass = 'border-l-status-stable';
+                          dotClass = 'bg-status-stable';
                         }
                       }
 
@@ -281,65 +287,52 @@ export default function NurseDashboard() {
                         <tr
                           key={patient._id}
                           onClick={() => fetchPatientDetail(patient._id)}
-                          className={`hover:bg-panel-hover transition-colors cursor-pointer ${borderStatusClass}`}
+                          className={`hover:bg-[#1C2B39] transition-colors cursor-pointer border-l-[3px] ${borderClass}`}
                         >
-                          <td className="py-2.5 px-4 font-mono font-bold text-text tabular-nums whitespace-nowrap">
+                          <td className="py-3 px-4 font-mono font-bold text-text tabular-nums whitespace-nowrap">
                             {patient.bedNumber}
                           </td>
 
-                          <td className="py-2.5 px-4">
+                          <td className="py-3 px-4 font-medium text-text">
                             <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-                              <span className="font-medium text-text">{patient.name}</span>
+                              <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
+                              <span>{patient.name}</span>
                             </div>
                           </td>
 
-                          <td className="py-2.5 px-4 font-mono text-text-muted tabular-nums whitespace-nowrap">
-                            {new Date(patient.admittedDate).toLocaleDateString([], {
-                              month: 'short',
-                              day: 'numeric',
-                            })}
+                          <td className="py-3 px-4 text-text-muted font-mono tabular-nums whitespace-nowrap">
+                            {new Date(patient.admittedDate).toLocaleDateString()}
                           </td>
 
-                          <td className="py-2.5 px-4 font-mono tabular-nums whitespace-nowrap">
+                          <td className="py-3 px-4 font-mono tabular-nums whitespace-nowrap">
                             {patient.latestTemperature ? (
-                              <span
-                                className={
-                                  patient.latestTemperature.hasFever
-                                    ? 'text-status-fever font-bold'
-                                    : 'text-text'
-                                }
-                              >
-                                {patient.latestTemperature.value}°F
+                              <span className={patient.latestTemperature.hasFever ? 'text-status-fever font-bold' : 'text-text'}>
+                                {patient.latestTemperature.value.toFixed(1)}°F
                               </span>
                             ) : (
-                              <span className="text-text-muted">--</span>
+                              <span className="text-text-muted">None</span>
                             )}
                           </td>
 
-                          <td className="py-2.5 px-4 font-mono tabular-nums whitespace-nowrap">
-                            <span className="font-semibold text-text">
-                              {feverFreeDays}
-                            </span>
-                            <span className="text-text-muted text-[11px]"> / 3 d</span>
+                          <td className="py-3 px-4 font-mono text-[11px] whitespace-nowrap">
+                            {isLogged ? (
+                              <span className="text-text-muted">Logged today</span>
+                            ) : (
+                              <span className="text-status-pending font-semibold">Needs Temp Log</span>
+                            )}
                           </td>
 
-                          <td className="py-2.5 px-4 whitespace-nowrap">
-                            <span className="text-[11px] font-mono text-text-muted flex items-center gap-1.5">
-                              <span>{statusText}</span>
-                              {patient.dischargeEligible && (
-                                <span className="text-[10px] text-status-stable font-bold">
-                                  [Eligible]
-                                </span>
-                              )}
-                            </span>
-                          </td>
-
-                          <td className="py-2.5 px-3 text-right">
-                            <span className="text-[11px] font-mono text-text-muted hover:text-text inline-flex items-center gap-0.5">
-                              <span>Log</span>
-                              <ChevronRight className="w-3.5 h-3.5" />
-                            </span>
+                          <td className="py-3 px-4 text-right whitespace-nowrap">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                fetchPatientDetail(patient._id);
+                              }}
+                              className="px-2.5 py-1 rounded-[3px] border border-border bg-[#0B1118] hover:bg-[#233546] text-text-muted hover:text-text font-mono text-xs transition-colors inline-flex items-center gap-1"
+                            >
+                              <span>Inspect</span>
+                              <ChevronRight className="w-3 h-3" />
+                            </button>
                           </td>
                         </tr>
                       );
@@ -351,61 +344,79 @@ export default function NurseDashboard() {
           </div>
         </div>
 
-        {/* Patient Bedside Detail Modal */}
+        {/* PATIENT DETAIL MODAL */}
         <Modal
           isOpen={!!selectedPatientId}
           onClose={() => {
             setSelectedPatientId(null);
             setPatientDetail(null);
           }}
-          title={patientDetail?.patient.name || 'Patient Chart'}
-          description={
-            patientDetail
-              ? `${patientDetail.patient.bedNumber} • Admitted ${new Date(
-                  patientDetail.patient.admittedDate
-                ).toLocaleDateString()}`
-              : ''
-          }
+          title={patientDetail ? `${patientDetail.patient.bedNumber} — ${patientDetail.patient.name}` : 'Patient Records'}
+          description="Bedside vital sign log and temperature surveillance history."
           maxWidth="lg"
         >
-          {isLoadingDetail || !patientDetail ? (
-            <div className="py-8 text-center text-xs text-text-muted font-mono">
-              Loading patient data...
+          {isLoadingDetail ? (
+            <div className="py-16 text-center text-xs text-text-muted font-mono flex flex-col items-center justify-center gap-2">
+              <Loader2 className="w-6 h-6 animate-spin" />
+              <span>Retrieving clinical records...</span>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Form to log today's temperature */}
-              <div className="border border-border bg-ink p-3.5 rounded-[3px] space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs font-bold uppercase tracking-wider text-text font-mono flex items-center gap-1.5">
-                    <Thermometer className="w-3.5 h-3.5 text-text-muted" />
-                    <span>Record Temperature</span>
-                  </div>
-                  {patientDetail.tempLoggedToday && (
-                    <span className="text-[10px] font-mono text-status-pending">
-                      Already logged today
-                    </span>
-                  )}
+          ) : patientDetail ? (
+            <div className="space-y-5">
+              {/* Metadata Bar */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-[#0B1118] border border-border rounded-[3px] text-xs font-mono">
+                <div>
+                  <span className="text-text-muted block text-[10px]">ADMITTED</span>
+                  <span className="font-semibold text-text tabular-nums">
+                    {new Date(patientDetail.patient.admittedDate).toLocaleDateString()}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-text-muted block text-[10px]">DAYS IN QUARANTINE</span>
+                  <span className="font-semibold text-text tabular-nums">
+                    {Math.max(1, Math.ceil((Date.now() - new Date(patientDetail.patient.admittedDate).getTime()) / (1000 * 60 * 60 * 24)))} days
+                  </span>
+                </div>
+                <div>
+                  <span className="text-text-muted block text-[10px]">FEVER-FREE STREAK</span>
+                  <span className="font-semibold text-text tabular-nums">
+                    {patientDetail.patient.eligibility?.consecutiveFeverFreeDays ?? 0} days
+                  </span>
+                </div>
+                <div>
+                  <span className="text-text-muted block text-[10px]">TODAY&apos;S STATUS</span>
+                  <span className={patientDetail.patient.tempLoggedToday ? 'text-status-stable font-semibold' : 'text-status-pending font-semibold'}>
+                    {patientDetail.patient.tempLoggedToday ? 'Logged' : 'Pending'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Log Temperature Form */}
+              <div className="p-3.5 bg-[#0B1118] border border-border rounded-[3px] space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-mono font-semibold uppercase tracking-wider text-text">
+                    Record Body Temperature
+                  </span>
+                  <span className="text-[11px] font-mono text-text-muted">Fever: &ge; 100.4°F (38.0°C)</span>
                 </div>
 
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleLogTemperature(false);
-                  }}
-                  className="flex gap-2"
-                >
+                <div className="flex items-center gap-2">
                   <div className="relative flex-1">
                     <input
                       type="number"
                       step="0.1"
-                      min="30"
-                      max="115"
+                      min="90"
+                      max="110"
                       value={tempInput}
                       onChange={(e) => setTempInput(e.target.value)}
                       placeholder="e.g. 98.6"
                       disabled={isSubmittingTemp}
-                      className="w-full bg-panel border border-border focus:border-text-muted text-text rounded-[3px] px-3 py-1.5 text-sm font-mono focus:outline-none"
+                      className="w-full bg-[#16212C] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3 py-2 text-sm font-mono tabular-nums focus:outline-none placeholder:text-text-muted/50"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleLogTemperature(false);
+                        }
+                      }}
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted">
                       °F
@@ -413,124 +424,118 @@ export default function NurseDashboard() {
                   </div>
 
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => handleLogTemperature(false)}
                     disabled={isSubmittingTemp || !tempInput.trim()}
-                    className="bg-btn hover:bg-btn-hover active:bg-btn-active border border-border disabled:opacity-50 text-text font-medium px-4 py-1.5 rounded-[3px] text-xs transition-colors flex items-center gap-1"
+                    className="px-4 py-2 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] disabled:opacity-50 text-text border border-border text-xs font-semibold font-mono transition-colors flex items-center gap-1.5"
                   >
                     {isSubmittingTemp ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                      <Plus className="w-3.5 h-3.5" />
+                      <>
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Save Vitals</span>
+                      </>
                     )}
-                    <span>Save Vitals</span>
                   </button>
-                </form>
+                </div>
               </div>
 
-              {/* Temperature History Line/Step Chart */}
-              <div>
-                <TemperatureChart logs={patientDetail.temperatureLogs} />
-              </div>
+              {/* Temperature Trend Chart */}
+              <TemperatureChart logs={patientDetail.temperatureLogs || []} />
 
-              {/* Temperature History Table with Mono Values */}
-              <div>
-                <div className="text-[11px] font-mono uppercase text-text-muted mb-2">
-                  Readings History ({patientDetail.temperatureLogs.length})
+              {/* Temperature History Table */}
+              <div className="space-y-2">
+                <div className="text-xs font-mono uppercase tracking-wider text-text-muted font-semibold">
+                  Detailed Readings Log
                 </div>
 
-                {patientDetail.temperatureLogs.length === 0 ? (
-                  <p className="text-xs text-text-muted py-3 text-center border border-border bg-ink rounded-[3px]">
-                    No temperature records logged.
-                  </p>
-                ) : (
-                  <div className="max-h-48 overflow-y-auto border border-border bg-ink rounded-[3px]">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-panel text-text-muted font-mono uppercase text-[10px] sticky top-0 border-b border-border">
+                <div className="max-h-48 overflow-y-auto border border-border rounded-[3px]">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#0B1118] text-text-muted uppercase text-[10px] font-mono border-b border-border sticky top-0">
+                      <tr>
+                        <th className="py-2 px-3 font-semibold">Timestamp</th>
+                        <th className="py-2 px-3 font-semibold">Value</th>
+                        <th className="py-2 px-3 font-semibold">Classification</th>
+                        <th className="py-2 px-3 font-semibold text-right">Logged By</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border text-text font-mono text-[11px]">
+                      {!patientDetail.temperatureLogs || patientDetail.temperatureLogs.length === 0 ? (
                         <tr>
-                          <th className="py-2 px-3">Timestamp</th>
-                          <th className="py-2 px-3">Reading</th>
-                          <th className="py-2 px-3">Status</th>
-                          <th className="py-2 px-3">Logged By</th>
+                          <td colSpan={4} className="py-4 text-center text-text-muted">
+                            No logs recorded.
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border/60 text-text">
-                        {patientDetail.temperatureLogs.map((log) => (
-                          <tr key={log._id} className="hover:bg-panel/50 font-mono text-xs">
+                      ) : (
+                        patientDetail.temperatureLogs.map((log) => (
+                          <tr key={log._id} className="hover:bg-[#1C2B39]">
                             <td className="py-2 px-3 text-text-muted tabular-nums">
-                              {new Date(log.loggedAt).toLocaleString([], {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
+                              {new Date(log.loggedAt).toLocaleString()}
                             </td>
                             <td className="py-2 px-3 font-bold tabular-nums">
-                              {log.value}°F
+                              <span className={log.hasFever ? 'text-status-fever' : 'text-status-stable'}>
+                                {log.value.toFixed(1)}°F
+                              </span>
                             </td>
                             <td className="py-2 px-3">
                               {log.hasFever ? (
-                                <span className="text-status-fever font-bold">
-                                  ● Fever
-                                </span>
+                                <span className="text-status-fever font-bold">Fever</span>
                               ) : (
-                                <span className="text-status-stable font-semibold">
-                                  ● Normal
-                                </span>
+                                <span className="text-status-stable">Normal</span>
                               )}
                             </td>
-                            <td className="py-2 px-3 text-text-muted font-sans text-xs">
-                              {log.loggedBy?.name || 'Nurse'}
+                            <td className="py-2 px-3 text-right text-text-muted">
+                              {log.loggedBy?.name || log.loggedBy?.staffId || 'Nurse'}
                             </td>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          )}
+          ) : null}
         </Modal>
 
-        {/* 409 Duplicate Temperature Modal */}
+        {/* 409 DUPLICATE CONFLICT MODAL */}
         <Modal
           isOpen={showConflictModal}
-          onClose={() => {
-            setShowConflictModal(false);
-            setConflictData(null);
-          }}
-          title="Duplicate Reading Confirmation"
+          onClose={() => setShowConflictModal(false)}
+          title="Duplicate Vital Reading Detected"
           maxWidth="sm"
         >
-          <div className="space-y-3 text-xs">
-            <p className="text-text leading-relaxed">
-              Already logged today at <span className="font-mono font-bold text-text">{conflictData?.logTime}</span>{' '}
-              with a value of <span className="font-mono font-bold text-text">{conflictData?.existingValue}°F</span>.
-            </p>
-            <p className="text-text-muted">
-              Do you want to overwrite and record an additional reading of{' '}
-              <span className="font-mono font-bold text-text">{conflictData?.tempValueToRetry}°F</span>?
-            </p>
+          <div className="space-y-4">
+            <div className="p-3 rounded-[3px] bg-[#2A1E24] border border-status-fever/40 text-xs text-text space-y-1">
+              <p className="font-semibold text-status-fever">
+                A reading of {conflictData?.existingValue}°F was already logged at {conflictData?.logTime}.
+              </p>
+              <p className="text-text-muted">
+                Do you want to overwrite today&apos;s record with {conflictData?.tempValueToRetry}°F?
+              </p>
+            </div>
 
             <div className="flex items-center gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => {
-                  setShowConflictModal(false);
-                  setConflictData(null);
-                }}
-                className="flex-1 px-3 py-1.5 rounded-[3px] border border-border bg-ink hover:bg-panel text-text-muted text-xs transition-colors"
+                onClick={() => setShowConflictModal(false)}
+                className="flex-1 py-2 px-3 rounded-[3px] border border-border bg-[#16212C] hover:bg-[#1C2B39] text-text-muted text-xs font-mono transition-colors"
               >
                 Cancel
               </button>
 
               <button
                 type="button"
-                disabled={isSubmittingTemp}
                 onClick={() => handleLogTemperature(true, conflictData?.tempValueToRetry)}
-                className="flex-1 px-3 py-1.5 rounded-[3px] bg-btn hover:bg-btn-hover active:bg-btn-active border border-border text-text font-bold text-xs transition-colors"
+                disabled={isSubmittingTemp}
+                className="flex-1 py-2 px-3 rounded-[3px] bg-status-fever hover:brightness-110 text-white text-xs font-bold font-mono transition-all flex items-center justify-center gap-1.5"
               >
-                {isSubmittingTemp ? 'Saving...' : 'Overwrite (?force)'}
+                {isSubmittingTemp ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <span>Overwrite Reading</span>
+                )}
               </button>
             </div>
           </div>
