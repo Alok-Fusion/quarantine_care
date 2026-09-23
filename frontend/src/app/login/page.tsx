@@ -1,20 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { api, ApiError } from '../../lib/api';
-import { LoginResponse } from '../../types';
+import { useTheme } from '../../context/ThemeContext';
 import {
-  Shield,
-  KeyRound,
   Loader2,
   AlertTriangle,
   ArrowRight,
-  Stethoscope,
-  Activity,
-  ClipboardList,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -24,7 +19,7 @@ export default function LoginPage() {
 
   const { login } = useAuth();
   const { showToast } = useToast();
-  const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +50,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-ink text-text flex items-center justify-center p-4 antialiased">
+    <div className="min-h-screen bg-bg text-text flex items-center justify-center p-4 antialiased relative">
+      {/* Top Corner Theme Toggle */}
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text-muted hover:text-text transition-colors flex items-center gap-1.5 text-xs font-mono"
+          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+        </button>
+      </div>
+
       <div className="max-w-md w-full space-y-5">
         {/* Terminal Header */}
         <div className="text-center space-y-1">
@@ -74,7 +81,7 @@ export default function LoginPage() {
         {/* Login Panel */}
         <div className="bg-panel border border-border rounded-[3px] p-5 space-y-4">
           {errorMsg && (
-            <div className="p-3 rounded-[3px] bg-[#2A1E24] border-l-3 border-l-status-fever border border-border text-xs text-text flex items-start gap-2.5">
+            <div className="p-3 rounded-[3px] bg-alert border-l-3 border-l-status-fever border border-border text-xs text-text flex items-start gap-2.5">
               <AlertTriangle className="w-4 h-4 text-status-fever shrink-0 mt-0.5" />
               <span className="font-mono">{errorMsg}</span>
             </div>
@@ -97,7 +104,7 @@ export default function LoginPage() {
                   }}
                   placeholder="e.g. N001, D001, A001"
                   disabled={isLoading}
-                  className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3.5 py-2.5 text-sm font-mono tracking-wider focus:outline-none transition-colors placeholder:text-text-muted/40 uppercase"
+                  className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] px-3.5 py-2.5 text-sm font-mono tracking-wider focus:outline-none transition-colors placeholder:text-text-muted/40 uppercase"
                 />
               </div>
             </div>
@@ -105,7 +112,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading || !staffId.trim()}
-              className="w-full bg-[#233546] hover:bg-[#2F4458] disabled:opacity-50 text-text font-bold font-mono py-2.5 px-4 rounded-[3px] border border-border flex items-center justify-center gap-2 text-xs transition-colors"
+              className="w-full bg-btn hover:bg-btn-hover disabled:opacity-50 text-white font-bold font-mono py-2.5 px-4 rounded-[3px] border border-border flex items-center justify-center gap-2 text-xs transition-colors"
             >
               {isLoading ? (
                 <>
@@ -115,7 +122,7 @@ export default function LoginPage() {
               ) : (
                 <>
                   <span>Authenticate Session</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-text-muted" />
+                  <ArrowRight className="w-3.5 h-3.5 text-white/80" />
                 </>
               )}
             </button>
@@ -130,34 +137,34 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => handleQuickLogin('N001')}
-                className="p-2 rounded-[3px] bg-[#0B1118] border border-border hover:border-[#4E677E] text-left transition-colors"
+                className="p-2 rounded-[3px] bg-subpanel border border-border hover:border-accent text-left transition-colors"
               >
                 <div className="flex items-center justify-between text-[11px] font-mono font-bold text-text">
                   <span>N001</span>
                 </div>
-                <div className="text-[10px] text-text-muted mt-0.5">Nurse</div>
+                <div className="text-[10px] text-text-muted mt-0.5 font-mono">Nurse</div>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleQuickLogin('D001')}
-                className="p-2 rounded-[3px] bg-[#0B1118] border border-border hover:border-[#4E677E] text-left transition-colors"
+                className="p-2 rounded-[3px] bg-subpanel border border-border hover:border-accent text-left transition-colors"
               >
                 <div className="flex items-center justify-between text-[11px] font-mono font-bold text-text">
                   <span>D001</span>
                 </div>
-                <div className="text-[10px] text-text-muted mt-0.5">Doctor</div>
+                <div className="text-[10px] text-text-muted mt-0.5 font-mono">Doctor</div>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleQuickLogin('A001')}
-                className="p-2 rounded-[3px] bg-[#0B1118] border border-border hover:border-[#4E677E] text-left transition-colors"
+                className="p-2 rounded-[3px] bg-subpanel border border-border hover:border-accent text-left transition-colors"
               >
                 <div className="flex items-center justify-between text-[11px] font-mono font-bold text-text">
                   <span>A001</span>
                 </div>
-                <div className="text-[10px] text-text-muted mt-0.5">Admin</div>
+                <div className="text-[10px] text-text-muted mt-0.5 font-mono">Admin</div>
               </button>
             </div>
           </div>

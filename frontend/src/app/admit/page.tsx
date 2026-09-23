@@ -7,7 +7,6 @@ import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
 import { BedsResponse, BedItem } from '../../types';
 import {
-  Bed,
   UserPlus,
   RefreshCw,
   AlertTriangle,
@@ -147,7 +146,7 @@ export default function AdmitPatientPage() {
             <button
               onClick={fetchBeds}
               disabled={isLoadingBeds}
-              className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-[#1D2B3A] text-text-muted hover:text-text text-xs font-medium transition-colors"
+              className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text-muted hover:text-text text-xs font-medium transition-colors"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoadingBeds ? 'animate-spin' : ''}`} />
               <span>Refresh Map</span>
@@ -163,7 +162,7 @@ export default function AdmitPatientPage() {
                   {occupiedCount} <span className="text-xs text-text-muted font-normal">/ {capacity} beds</span>
                 </div>
               </div>
-              <span className="text-xs font-mono tabular-nums text-text px-2 py-0.5 rounded-[2px] bg-[#0B1118] border border-border">
+              <span className="text-xs font-mono tabular-nums text-text px-2 py-0.5 rounded-[2px] bg-subpanel border border-border">
                 {occupancyPercent}%
               </span>
             </div>
@@ -205,8 +204,8 @@ export default function AdmitPatientPage() {
                       onClick={() => setSelectedZone(zone)}
                       className={`px-2.5 py-1 rounded-[2px] text-[11px] font-mono font-medium transition-colors ${
                         selectedZone === zone
-                          ? 'bg-[#0B1118] text-text border border-border font-bold'
-                          : 'text-text-muted hover:text-text hover:bg-[#1D2B3A]'
+                          ? 'bg-subpanel text-text border border-border font-bold'
+                          : 'text-text-muted hover:text-text hover:bg-panel-hover'
                       }`}
                     >
                       {zone === 'all' ? 'All' : zone.replace('Zone ', '')}
@@ -232,10 +231,10 @@ export default function AdmitPatientPage() {
                         onClick={() => handleBedClick(bed)}
                         className={`p-2 rounded-[3px] border transition-colors cursor-pointer flex flex-col justify-between min-h-[68px] ${
                           isSelected
-                            ? 'border-[#4E677E] bg-[#1E2D3C] ring-1 ring-[#4E677E]'
+                            ? 'border-accent bg-subpanel ring-1 ring-accent'
                             : isOccupied
-                            ? 'border-border bg-[#0B1118] text-text-muted hover:border-[#384858]'
-                            : 'border-border bg-panel hover:bg-[#1C2937] hover:border-[#4E677E] text-text'
+                            ? 'border-border bg-subpanel text-text-muted hover:border-border-light'
+                            : 'border-border bg-panel hover:bg-panel-hover hover:border-border-light text-text'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -244,7 +243,7 @@ export default function AdmitPatientPage() {
                           </span>
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${
-                              isOccupied ? 'bg-[#55697A]' : 'bg-status-stable'
+                              isOccupied ? 'bg-border' : 'bg-status-stable'
                             }`}
                           />
                         </div>
@@ -272,7 +271,7 @@ export default function AdmitPatientPage() {
                   <span>Available ({freeCount})</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#55697A]" />
+                  <span className="w-2 h-2 rounded-full bg-border" />
                   <span>Occupied ({occupiedCount})</span>
                 </div>
               </div>
@@ -290,14 +289,14 @@ export default function AdmitPatientPage() {
               </div>
 
               {formError && (
-                <div className="p-2.5 rounded-[3px] bg-[#2A1E24] border-l-2 border-l-status-fever border border-border text-xs text-text flex items-start gap-2">
+                <div className="p-2.5 rounded-[3px] bg-alert border-l-2 border-l-status-fever border border-border text-xs text-text flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 text-status-fever shrink-0 mt-0.5" />
                   <span className="font-mono">{formError}</span>
                 </div>
               )}
 
               {freeCount === 0 && (
-                <div className="p-2.5 rounded-[3px] bg-[#221D15] border-l-2 border-l-status-pending border border-border text-xs text-text flex items-center gap-2 font-mono">
+                <div className="p-2.5 rounded-[3px] bg-alert border-l-2 border-l-status-pending border border-border text-xs text-text flex items-center gap-2 font-mono">
                   <AlertTriangle className="w-4 h-4 text-status-pending shrink-0" />
                   <span>Facility is currently at full capacity (74/74 beds).</span>
                 </div>
@@ -318,7 +317,7 @@ export default function AdmitPatientPage() {
                     }}
                     placeholder="e.g. Samuel Jackson"
                     disabled={isSubmitting || freeCount === 0}
-                    className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none transition-colors"
+                    className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -334,7 +333,7 @@ export default function AdmitPatientPage() {
                       if (formError) setFormError('');
                     }}
                     disabled={isSubmitting || freeCount === 0}
-                    className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none font-mono tabular-nums transition-colors"
+                    className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none font-mono tabular-nums transition-colors"
                   >
                     <option value="">-- Choose an Available Bed --</option>
                     {freeBedsList.map((bed) => (
@@ -355,14 +354,14 @@ export default function AdmitPatientPage() {
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Intake symptoms, contact tracing history, emergency contact..."
                     disabled={isSubmitting || freeCount === 0}
-                    className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none transition-colors"
+                    className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none transition-colors"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting || freeCount === 0 || !patientName.trim() || !selectedBed}
-                  className="w-full bg-[#233546] hover:bg-[#2F4458] disabled:opacity-50 text-text font-bold font-mono py-2.5 px-3 rounded-[3px] border border-border flex items-center justify-center gap-1.5 text-xs transition-colors"
+                  className="w-full bg-btn hover:bg-btn-hover disabled:opacity-50 text-white font-bold font-mono py-2.5 px-3 rounded-[3px] border border-border flex items-center justify-center gap-1.5 text-xs transition-colors"
                 >
                   {isSubmitting ? (
                     <>
@@ -371,7 +370,7 @@ export default function AdmitPatientPage() {
                     </>
                   ) : (
                     <>
-                      <UserPlus className="w-3.5 h-3.5 text-text-muted" />
+                      <UserPlus className="w-3.5 h-3.5" />
                       <span>Confirm Admission</span>
                     </>
                   )}

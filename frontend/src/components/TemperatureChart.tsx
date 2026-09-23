@@ -12,7 +12,7 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
 
   if (!logs || logs.length === 0) {
     return (
-      <div className="py-8 text-center text-xs text-text-muted border border-border bg-[#0B1118] rounded-[3px] font-mono">
+      <div className="py-8 text-center text-xs text-text-muted border border-border bg-subpanel rounded-[3px] font-mono">
         NO TEMPERATURE READINGS RECORDED
       </div>
     );
@@ -55,7 +55,7 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
   const pathD = points.length > 1 ? `M ${points.join(' L ')}` : '';
 
   return (
-    <div className="border border-border bg-[#0B1118] p-3.5 rounded-[3px] space-y-2">
+    <div className="border border-border bg-subpanel p-3.5 rounded-[3px] space-y-2">
       <div className="flex items-center justify-between text-[11px] font-mono text-text-muted border-b border-border/50 pb-2">
         <div className="flex items-center gap-2">
           <span className="font-semibold uppercase tracking-wider text-text">Vital Signs Trend</span>
@@ -67,7 +67,7 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
             <span className="text-status-fever font-semibold">100.4°F Threshold</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-0.5 bg-[#2A3844]" />
+            <span className="w-2 h-0.5 bg-border" />
             <span>98.6°F Baseline</span>
           </span>
         </div>
@@ -84,14 +84,14 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
             y1={baselineY}
             x2={chartWidth - paddingX}
             y2={baselineY}
-            stroke="#2A3844"
+            stroke="var(--border)"
             strokeDasharray="2,2"
             strokeWidth="1"
           />
           <text
             x={paddingX - 6}
             y={baselineY + 3}
-            fill="#8FA1AF"
+            fill="var(--text-muted)"
             fontSize="9"
             fontFamily="var(--font-ibm-plex-mono), monospace"
             textAnchor="end"
@@ -105,14 +105,14 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
             y1={feverY}
             x2={chartWidth - paddingX}
             y2={feverY}
-            stroke="#C4472F"
+            stroke="var(--status-fever)"
             strokeDasharray="3,3"
             strokeWidth="1"
           />
           <text
             x={paddingX - 6}
             y={feverY + 3}
-            fill="#C4472F"
+            fill="var(--status-fever)"
             fontSize="9"
             fontFamily="var(--font-ibm-plex-mono), monospace"
             textAnchor="end"
@@ -126,7 +126,7 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
             <path
               d={pathD}
               fill="none"
-              stroke="#4E677E"
+              stroke="var(--text-muted)"
               strokeWidth="1.5"
             />
           )}
@@ -136,7 +136,7 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
             const cx = getX(i);
             const cy = getY(log.value);
             const isFever = log.hasFever || log.value >= 100.4;
-            const color = isFever ? '#C4472F' : '#4F9D69';
+            const colorVar = isFever ? 'var(--status-fever)' : 'var(--status-stable)';
 
             return (
               <g
@@ -149,14 +149,14 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
                   cx={cx}
                   cy={cy}
                   r="3.5"
-                  fill={color}
-                  stroke="#0F1720"
+                  fill={colorVar}
+                  stroke="var(--bg)"
                   strokeWidth="1.5"
                 />
                 <text
                   x={cx}
                   y={cy - 6}
-                  fill={color}
+                  fill={colorVar}
                   fontSize="9"
                   fontFamily="var(--font-ibm-plex-mono), monospace"
                   textAnchor="middle"
@@ -167,7 +167,7 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
                 <text
                   x={cx}
                   y={chartHeight - 4}
-                  fill="#55697A"
+                  fill="var(--text-muted)"
                   fontSize="8"
                   fontFamily="var(--font-ibm-plex-mono), monospace"
                   textAnchor="middle"
@@ -181,7 +181,7 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
       </div>
 
       {hoveredLog && (
-        <div className="text-[11px] font-mono text-text-muted bg-[#16212C] border border-border p-2 rounded-[2px] flex items-center justify-between">
+        <div className="text-[11px] font-mono text-text-muted bg-panel border border-border p-2 rounded-[2px] flex items-center justify-between">
           <span>
             Reading: <strong className="text-text">{hoveredLog.value.toFixed(1)}°F</strong>{' '}
             ({hoveredLog.hasFever ? 'Fever detected' : 'Afebrile / Stable'})

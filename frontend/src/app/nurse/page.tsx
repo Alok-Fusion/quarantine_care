@@ -9,17 +9,12 @@ import { useToast } from '../../context/ToastContext';
 import { api } from '../../lib/api';
 import { Patient, PatientDetailResponse, TemperatureLog } from '../../types';
 import {
-  Thermometer,
   Search,
   RefreshCw,
   Plus,
   Loader2,
   ChevronRight,
   Bed,
-  Calendar,
-  Clock,
-  User,
-  AlertTriangle,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -170,16 +165,16 @@ export default function NurseDashboard() {
             <div className="flex items-center gap-2">
               <Link
                 href="/admit"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text text-xs border border-border font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-btn hover:bg-btn-hover text-white text-xs font-medium transition-colors"
               >
-                <Bed className="w-3.5 h-3.5 text-text-muted" />
+                <Bed className="w-3.5 h-3.5" />
                 <span>Admit / Bed Map</span>
               </Link>
 
               <button
                 onClick={fetchPatients}
                 disabled={isLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-[#1D2B3A] text-text-muted hover:text-text text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text-muted hover:text-text text-xs font-medium transition-colors"
                 title="Refresh Patients"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -198,7 +193,7 @@ export default function NurseDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filter by bed (e.g. Bed A-101) or patient name..."
-                className="w-full pl-8 pr-3 py-1.5 bg-[#0B1118] border border-border text-xs text-text rounded-[3px] focus:outline-none focus:border-[#4E677E] placeholder:text-text-muted/60 font-mono"
+                className="w-full pl-8 pr-3 py-1.5 bg-input border border-border text-xs text-text rounded-[3px] focus:outline-none focus:border-accent placeholder:text-text-muted/60 font-mono transition-colors"
               />
             </div>
 
@@ -208,7 +203,7 @@ export default function NurseDashboard() {
                 onClick={() => setStatusFilter('all')}
                 className={`px-3 py-1 text-xs font-mono transition-colors rounded-[2px] ${
                   statusFilter === 'all'
-                    ? 'bg-[#0B1118] text-text font-bold border border-border'
+                    ? 'bg-subpanel text-text font-bold border border-border'
                     : 'text-text-muted hover:text-text'
                 }`}
               >
@@ -218,7 +213,7 @@ export default function NurseDashboard() {
                 onClick={() => setStatusFilter('pending')}
                 className={`px-3 py-1 text-xs font-mono transition-colors rounded-[2px] flex items-center gap-1.5 ${
                   statusFilter === 'pending'
-                    ? 'bg-[#0B1118] text-text font-bold border border-border'
+                    ? 'bg-subpanel text-text font-bold border border-border'
                     : 'text-text-muted hover:text-text'
                 }`}
               >
@@ -229,7 +224,7 @@ export default function NurseDashboard() {
                 onClick={() => setStatusFilter('recorded')}
                 className={`px-3 py-1 text-xs font-mono transition-colors rounded-[2px] flex items-center gap-1.5 ${
                   statusFilter === 'recorded'
-                    ? 'bg-[#0B1118] text-text font-bold border border-border'
+                    ? 'bg-subpanel text-text font-bold border border-border'
                     : 'text-text-muted hover:text-text'
                 }`}
               >
@@ -239,7 +234,7 @@ export default function NurseDashboard() {
             </div>
           </div>
 
-          {/* DENSE SINGLE-COLUMN PATIENT TABLE/LIST */}
+          {/* DENSE SINGLE-COLUMN PATIENT TABLE/LIST (Ward-chart aesthetic) */}
           <div className="border border-border bg-panel rounded-[3px] overflow-hidden">
             {isLoading ? (
               <div className="py-16 text-center text-xs text-text-muted font-mono flex flex-col items-center justify-center gap-2">
@@ -254,12 +249,12 @@ export default function NurseDashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-border bg-[#0B1118] text-text-muted text-[10px] font-mono uppercase">
-                      <th className="py-2.5 px-4 font-semibold">Bed</th>
-                      <th className="py-2.5 px-4 font-semibold">Patient Name</th>
-                      <th className="py-2.5 px-4 font-semibold">Admitted Date</th>
-                      <th className="py-2.5 px-4 font-semibold">Latest Temp</th>
-                      <th className="py-2.5 px-4 font-semibold">Daily Status</th>
+                    <tr className="border-b border-border bg-subpanel text-text-muted text-[10px] font-mono uppercase">
+                      <th className="py-2.5 px-4 font-semibold border-r border-border">Bed</th>
+                      <th className="py-2.5 px-4 font-semibold border-r border-border">Patient Name</th>
+                      <th className="py-2.5 px-4 font-semibold border-r border-border">Admitted Date</th>
+                      <th className="py-2.5 px-4 font-semibold border-r border-border">Latest Temp</th>
+                      <th className="py-2.5 px-4 font-semibold border-r border-border">Daily Status</th>
                       <th className="py-2.5 px-4 font-semibold text-right">Action</th>
                     </tr>
                   </thead>
@@ -287,34 +282,34 @@ export default function NurseDashboard() {
                         <tr
                           key={patient._id}
                           onClick={() => fetchPatientDetail(patient._id)}
-                          className={`hover:bg-[#1C2B39] transition-colors cursor-pointer border-l-[3px] ${borderClass}`}
+                          className={`hover:bg-panel-hover transition-colors cursor-pointer border-l-[3px] ${borderClass}`}
                         >
-                          <td className="py-3 px-4 font-mono font-bold text-text tabular-nums whitespace-nowrap">
+                          <td className="py-3 px-4 font-mono font-bold text-text tabular-nums whitespace-nowrap border-r border-border">
                             {patient.bedNumber}
                           </td>
 
-                          <td className="py-3 px-4 font-medium text-text">
+                          <td className="py-3 px-4 font-medium text-text border-r border-border">
                             <div className="flex items-center gap-2">
                               <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
                               <span>{patient.name}</span>
                             </div>
                           </td>
 
-                          <td className="py-3 px-4 text-text-muted font-mono tabular-nums whitespace-nowrap">
+                          <td className="py-3 px-4 text-text-muted font-mono tabular-nums whitespace-nowrap border-r border-border">
                             {new Date(patient.admittedDate).toLocaleDateString()}
                           </td>
 
-                          <td className="py-3 px-4 font-mono tabular-nums whitespace-nowrap">
-                            {patient.latestTemperature ? (
-                              <span className={patient.latestTemperature.hasFever ? 'text-status-fever font-bold' : 'text-text'}>
-                                {patient.latestTemperature.value.toFixed(1)}°F
+                          <td className="py-3 px-4 font-mono tabular-nums whitespace-nowrap border-r border-border">
+                            {latest ? (
+                              <span className={latest.hasFever ? 'text-status-fever font-bold' : 'text-text'}>
+                                {latest.value.toFixed(1)}°F
                               </span>
                             ) : (
                               <span className="text-text-muted">None</span>
                             )}
                           </td>
 
-                          <td className="py-3 px-4 font-mono text-[11px] whitespace-nowrap">
+                          <td className="py-3 px-4 font-mono text-[11px] whitespace-nowrap border-r border-border">
                             {isLogged ? (
                               <span className="text-text-muted">Logged today</span>
                             ) : (
@@ -328,7 +323,7 @@ export default function NurseDashboard() {
                                 e.stopPropagation();
                                 fetchPatientDetail(patient._id);
                               }}
-                              className="px-2.5 py-1 rounded-[3px] border border-border bg-[#0B1118] hover:bg-[#233546] text-text-muted hover:text-text font-mono text-xs transition-colors inline-flex items-center gap-1"
+                              className="px-2.5 py-1 rounded-[3px] border border-border bg-subpanel hover:bg-panel-hover text-text font-mono text-xs transition-colors inline-flex items-center gap-1"
                             >
                               <span>Inspect</span>
                               <ChevronRight className="w-3 h-3" />
@@ -363,7 +358,7 @@ export default function NurseDashboard() {
           ) : patientDetail ? (
             <div className="space-y-5">
               {/* Metadata Bar */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-[#0B1118] border border-border rounded-[3px] text-xs font-mono">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-subpanel border border-border rounded-[3px] text-xs font-mono">
                 <div>
                   <span className="text-text-muted block text-[10px]">ADMITTED</span>
                   <span className="font-semibold text-text tabular-nums">
@@ -391,7 +386,7 @@ export default function NurseDashboard() {
               </div>
 
               {/* Log Temperature Form */}
-              <div className="p-3.5 bg-[#0B1118] border border-border rounded-[3px] space-y-3">
+              <div className="p-3.5 bg-subpanel border border-border rounded-[3px] space-y-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-mono font-semibold uppercase tracking-wider text-text">
                     Record Body Temperature
@@ -410,7 +405,7 @@ export default function NurseDashboard() {
                       onChange={(e) => setTempInput(e.target.value)}
                       placeholder="e.g. 98.6"
                       disabled={isSubmittingTemp}
-                      className="w-full bg-[#16212C] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3 py-2 text-sm font-mono tabular-nums focus:outline-none placeholder:text-text-muted/50"
+                      className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] px-3 py-2 text-sm font-mono tabular-nums focus:outline-none placeholder:text-text-muted/50 transition-colors"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -427,7 +422,7 @@ export default function NurseDashboard() {
                     type="button"
                     onClick={() => handleLogTemperature(false)}
                     disabled={isSubmittingTemp || !tempInput.trim()}
-                    className="px-4 py-2 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] disabled:opacity-50 text-text border border-border text-xs font-semibold font-mono transition-colors flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-[3px] bg-btn hover:bg-btn-hover disabled:opacity-50 text-white text-xs font-semibold font-mono transition-colors flex items-center gap-1.5"
                   >
                     {isSubmittingTemp ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -450,13 +445,13 @@ export default function NurseDashboard() {
                   Detailed Readings Log
                 </div>
 
-                <div className="max-h-48 overflow-y-auto border border-border rounded-[3px]">
+                <div className="max-h-48 overflow-y-auto border border-border rounded-[3px] bg-panel">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#0B1118] text-text-muted uppercase text-[10px] font-mono border-b border-border sticky top-0">
+                    <thead className="bg-subpanel text-text-muted uppercase text-[10px] font-mono border-b border-border sticky top-0">
                       <tr>
-                        <th className="py-2 px-3 font-semibold">Timestamp</th>
-                        <th className="py-2 px-3 font-semibold">Value</th>
-                        <th className="py-2 px-3 font-semibold">Classification</th>
+                        <th className="py-2 px-3 font-semibold border-r border-border">Timestamp</th>
+                        <th className="py-2 px-3 font-semibold border-r border-border">Value</th>
+                        <th className="py-2 px-3 font-semibold border-r border-border">Classification</th>
                         <th className="py-2 px-3 font-semibold text-right">Logged By</th>
                       </tr>
                     </thead>
@@ -469,16 +464,16 @@ export default function NurseDashboard() {
                         </tr>
                       ) : (
                         patientDetail.temperatureLogs.map((log) => (
-                          <tr key={log._id} className="hover:bg-[#1C2B39]">
-                            <td className="py-2 px-3 text-text-muted tabular-nums">
+                          <tr key={log._id} className="hover:bg-panel-hover">
+                            <td className="py-2 px-3 text-text-muted tabular-nums border-r border-border">
                               {new Date(log.loggedAt).toLocaleString()}
                             </td>
-                            <td className="py-2 px-3 font-bold tabular-nums">
+                            <td className="py-2 px-3 font-bold tabular-nums border-r border-border">
                               <span className={log.hasFever ? 'text-status-fever' : 'text-status-stable'}>
                                 {log.value.toFixed(1)}°F
                               </span>
                             </td>
-                            <td className="py-2 px-3">
+                            <td className="py-2 px-3 border-r border-border">
                               {log.hasFever ? (
                                 <span className="text-status-fever font-bold">Fever</span>
                               ) : (
@@ -507,7 +502,7 @@ export default function NurseDashboard() {
           maxWidth="sm"
         >
           <div className="space-y-4">
-            <div className="p-3 rounded-[3px] bg-[#2A1E24] border border-status-fever/40 text-xs text-text space-y-1">
+            <div className="p-3 rounded-[3px] bg-alert border border-status-fever/40 text-xs text-text space-y-1">
               <p className="font-semibold text-status-fever">
                 A reading of {conflictData?.existingValue}°F was already logged at {conflictData?.logTime}.
               </p>
@@ -520,7 +515,7 @@ export default function NurseDashboard() {
               <button
                 type="button"
                 onClick={() => setShowConflictModal(false)}
-                className="flex-1 py-2 px-3 rounded-[3px] border border-border bg-[#16212C] hover:bg-[#1C2B39] text-text-muted text-xs font-mono transition-colors"
+                className="flex-1 py-2 px-3 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text text-xs font-mono transition-colors"
               >
                 Cancel
               </button>

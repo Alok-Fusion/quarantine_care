@@ -15,13 +15,7 @@ import {
   Loader2,
   ChevronRight,
   AlertCircle,
-  FileText,
-  UserCheck,
-  UserX,
-  Sparkles,
-  Bed,
 } from 'lucide-react';
-import Link from 'next/link';
 
 export default function DoctorDashboard() {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -214,7 +208,7 @@ export default function DoctorDashboard() {
               <button
                 onClick={fetchPatients}
                 disabled={isLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-[#1D2B3A] text-text-muted hover:text-text text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text-muted hover:text-text text-xs font-medium transition-colors"
                 title="Refresh Census"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -232,7 +226,7 @@ export default function DoctorDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filter by bed or patient name..."
-                className="w-full pl-8 pr-3 py-1.5 bg-[#0B1118] border border-border text-xs text-text rounded-[3px] focus:outline-none focus:border-[#4E677E] placeholder:text-text-muted/60 font-mono"
+                className="w-full pl-8 pr-3 py-1.5 bg-input border border-border text-xs text-text rounded-[3px] focus:outline-none focus:border-accent placeholder:text-text-muted/60 font-mono transition-colors"
               />
             </div>
 
@@ -241,7 +235,7 @@ export default function DoctorDashboard() {
                 onClick={() => setFilterTab('not-visited')}
                 className={`px-3 py-1 text-xs font-mono transition-colors rounded-[2px] flex items-center gap-1.5 ${
                   filterTab === 'not-visited'
-                    ? 'bg-[#0B1118] text-text font-bold border border-border'
+                    ? 'bg-subpanel text-text font-bold border border-border'
                     : 'text-text-muted hover:text-text'
                 }`}
               >
@@ -252,7 +246,7 @@ export default function DoctorDashboard() {
                 onClick={() => setFilterTab('all')}
                 className={`px-3 py-1 text-xs font-mono transition-colors rounded-[2px] ${
                   filterTab === 'all'
-                    ? 'bg-[#0B1118] text-text font-bold border border-border'
+                    ? 'bg-subpanel text-text font-bold border border-border'
                     : 'text-text-muted hover:text-text'
                 }`}
               >
@@ -262,7 +256,7 @@ export default function DoctorDashboard() {
                 onClick={() => setFilterTab('discharge-eligible')}
                 className={`px-3 py-1 text-xs font-mono transition-colors rounded-[2px] flex items-center gap-1.5 ${
                   filterTab === 'discharge-eligible'
-                    ? 'bg-[#0B1118] text-text font-bold border border-border'
+                    ? 'bg-subpanel text-text font-bold border border-border'
                     : 'text-text-muted hover:text-text'
                 }`}
               >
@@ -287,12 +281,12 @@ export default function DoctorDashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-border bg-[#0B1118] text-text-muted text-[10px] font-mono uppercase">
-                      <th className="py-2.5 px-4 font-semibold">Bed</th>
-                      <th className="py-2.5 px-4 font-semibold">Patient Name</th>
-                      <th className="py-2.5 px-4 font-semibold">Latest Temp</th>
-                      <th className="py-2.5 px-4 font-semibold">Fever-Free Streak</th>
-                      <th className="py-2.5 px-4 font-semibold">Rounds Status</th>
+                    <tr className="border-b border-border bg-subpanel text-text-muted text-[10px] font-mono uppercase">
+                      <th className="py-2.5 px-4 font-semibold border-r border-border">Bed</th>
+                      <th className="py-2.5 px-4 font-semibold border-r border-border">Patient Name</th>
+                      <th className="py-2.5 px-4 font-semibold border-r border-border">Latest Temp</th>
+                      <th className="py-2.5 px-4 font-semibold border-r border-border">Fever-Free Streak</th>
+                      <th className="py-2.5 px-4 font-semibold border-r border-border">Rounds Status</th>
                       <th className="py-2.5 px-4 font-semibold text-right">Consultation</th>
                     </tr>
                   </thead>
@@ -300,7 +294,8 @@ export default function DoctorDashboard() {
                     {filteredPatients.map((patient) => {
                       const isVisited = patient.visitedToday;
                       const isEligible = patient.dischargeEligible;
-                      const hasFever = patient.latestTemperature?.hasFever;
+                      const latest = patient.latestTemperature || patient.latestTemp;
+                      const hasFever = latest?.hasFever;
 
                       let borderClass = 'border-l-status-pending';
                       let dotClass = 'bg-status-pending';
@@ -320,42 +315,42 @@ export default function DoctorDashboard() {
                         <tr
                           key={patient._id}
                           onClick={() => fetchPatientDetail(patient._id)}
-                          className={`hover:bg-[#1C2B39] transition-colors cursor-pointer border-l-[3px] ${borderClass}`}
+                          className={`hover:bg-panel-hover transition-colors cursor-pointer border-l-[3px] ${borderClass}`}
                         >
-                          <td className="py-3 px-4 font-mono font-bold text-text tabular-nums whitespace-nowrap">
+                          <td className="py-3 px-4 font-mono font-bold text-text tabular-nums whitespace-nowrap border-r border-border">
                             {patient.bedNumber}
                           </td>
 
-                          <td className="py-3 px-4 font-medium text-text">
+                          <td className="py-3 px-4 font-medium text-text border-r border-border">
                             <div className="flex items-center gap-2">
                               <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
                               <span>{patient.name}</span>
                               {isEligible && (
-                                <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-[2px] bg-[#16291E] border border-status-stable/40 text-status-stable font-bold uppercase">
+                                <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-[2px] bg-badge text-status-stable border border-status-stable/40 font-bold uppercase">
                                   Eligible
                                 </span>
                               )}
                             </div>
                           </td>
 
-                          <td className="py-3 px-4 font-mono tabular-nums whitespace-nowrap">
-                            {patient.latestTemperature ? (
-                              <span className={patient.latestTemperature.hasFever ? 'text-status-fever font-bold' : 'text-text'}>
-                                {patient.latestTemperature.value.toFixed(1)}°F
+                          <td className="py-3 px-4 font-mono tabular-nums whitespace-nowrap border-r border-border">
+                            {latest ? (
+                              <span className={latest.hasFever ? 'text-status-fever font-bold' : 'text-text'}>
+                                {latest.value.toFixed(1)}°F
                               </span>
                             ) : (
                               <span className="text-text-muted">Not recorded</span>
                             )}
                           </td>
 
-                          <td className="py-3 px-4 font-mono tabular-nums whitespace-nowrap">
+                          <td className="py-3 px-4 font-mono tabular-nums whitespace-nowrap border-r border-border">
                             <span className="font-bold text-text">
                               {patient.eligibility?.consecutiveFeverFreeDays ?? 0}
                             </span>{' '}
                             <span className="text-text-muted">/ 3 days</span>
                           </td>
 
-                          <td className="py-3 px-4 font-mono text-[11px] whitespace-nowrap">
+                          <td className="py-3 px-4 font-mono text-[11px] whitespace-nowrap border-r border-border">
                             {isVisited ? (
                               <span className="text-text-muted">Visited today</span>
                             ) : (
@@ -369,7 +364,7 @@ export default function DoctorDashboard() {
                                 e.stopPropagation();
                                 fetchPatientDetail(patient._id);
                               }}
-                              className="px-2.5 py-1 rounded-[3px] border border-border bg-[#0B1118] hover:bg-[#233546] text-text-muted hover:text-text font-mono text-xs transition-colors inline-flex items-center gap-1"
+                              className="px-2.5 py-1 rounded-[3px] border border-border bg-subpanel hover:bg-panel-hover text-text font-mono text-xs transition-colors inline-flex items-center gap-1"
                             >
                               <span>Review</span>
                               <ChevronRight className="w-3 h-3" />
@@ -408,8 +403,8 @@ export default function DoctorDashboard() {
               <div
                 className={`p-3 rounded-[3px] border text-xs flex items-center justify-between ${
                   patientDetail.patient.dischargeEligible
-                    ? 'border-status-stable/40 bg-[#16291E] text-text'
-                    : 'border-border bg-[#0B1118] text-text-muted'
+                    ? 'border-status-stable/40 bg-badge text-text'
+                    : 'border-border bg-subpanel text-text-muted'
                 }`}
               >
                 <div>
@@ -437,8 +432,8 @@ export default function DoctorDashboard() {
                     disabled={!patientDetail.patient.dischargeEligible}
                     className={`px-3 py-1.5 rounded-[3px] font-mono text-xs font-bold border transition-colors ${
                       patientDetail.patient.dischargeEligible
-                        ? 'bg-[#233546] hover:bg-[#2F4458] text-text border-border'
-                        : 'bg-[#16212C] text-text-muted border-border cursor-not-allowed opacity-50'
+                        ? 'bg-btn hover:bg-btn-hover text-white border-border'
+                        : 'bg-panel text-text-muted border-border cursor-not-allowed opacity-50'
                     }`}
                   >
                     Clear Discharge
@@ -447,7 +442,7 @@ export default function DoctorDashboard() {
                   <button
                     type="button"
                     onClick={() => setShowDeceasedModal(true)}
-                    className="px-2.5 py-1.5 rounded-[3px] border border-border bg-[#16212C] hover:bg-[#2A1E24] hover:border-status-fever/40 text-text-muted hover:text-status-fever font-mono text-xs transition-colors"
+                    className="px-2.5 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-alert hover:border-status-fever/40 text-text-muted hover:text-status-fever font-mono text-xs transition-colors"
                   >
                     Deceased
                   </button>
@@ -458,22 +453,22 @@ export default function DoctorDashboard() {
               <TemperatureChart logs={patientDetail.temperatureLogs || []} />
 
               {/* Record Visit Form (Gated: requires nurse temp log today) */}
-              <form onSubmit={handleRecordVisit} className="p-3.5 bg-[#0B1118] border border-border rounded-[3px] space-y-3">
+              <form onSubmit={handleRecordVisit} className="p-3.5 bg-subpanel border border-border rounded-[3px] space-y-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-mono font-semibold uppercase tracking-wider text-text">
                     Physician Rounds Consultation Note
                   </span>
                   <span className="text-[11px] font-mono text-text-muted">
                     {patientDetail.patient.tempLoggedToday ? (
-                      <span className="text-status-stable">Temp Log Verified</span>
+                      <span className="text-status-stable font-semibold">Temp Log Verified</span>
                     ) : (
-                      <span className="text-status-pending">Nurse temp log required</span>
+                      <span className="text-status-pending font-semibold">Nurse temp log required</span>
                     )}
                   </span>
                 </div>
 
                 {visitErrorMessage && (
-                  <div className="p-2.5 rounded-[3px] bg-[#2A1E24] border-l-2 border-l-status-fever border border-border text-xs text-text flex items-start gap-2">
+                  <div className="p-2.5 rounded-[3px] bg-alert border-l-2 border-l-status-fever border border-border text-xs text-text flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 text-status-fever shrink-0 mt-0.5" />
                     <span className="font-mono">{visitErrorMessage}</span>
                   </div>
@@ -490,7 +485,7 @@ export default function DoctorDashboard() {
                     }}
                     placeholder="Document clinical assessment, respiratory examination, symptoms, medication changes..."
                     disabled={isSubmittingVisit}
-                    className="w-full bg-[#16212C] border border-border focus:border-[#4E677E] text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none placeholder:text-text-muted/50"
+                    className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none placeholder:text-text-muted/50 transition-colors"
                   />
                 </div>
 
@@ -498,13 +493,13 @@ export default function DoctorDashboard() {
                   <button
                     type="submit"
                     disabled={isSubmittingVisit || !visitNotes.trim()}
-                    className="px-4 py-2 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] disabled:opacity-50 text-text border border-border text-xs font-semibold font-mono transition-colors flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-[3px] bg-btn hover:bg-btn-hover disabled:opacity-50 text-white text-xs font-semibold font-mono transition-colors flex items-center gap-1.5"
                   >
                     {isSubmittingVisit ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
                       <>
-                        <Stethoscope className="w-3.5 h-3.5 text-text-muted" />
+                        <Stethoscope className="w-3.5 h-3.5" />
                         <span>Sign Rounds Note</span>
                       </>
                     )}
@@ -518,14 +513,14 @@ export default function DoctorDashboard() {
                   Previous Physician Consultations ({patientDetail.doctorVisits?.length || 0})
                 </div>
 
-                <div className="max-h-48 overflow-y-auto divide-y divide-border border border-border rounded-[3px]">
+                <div className="max-h-48 overflow-y-auto divide-y divide-border border border-border rounded-[3px] bg-panel">
                   {!patientDetail.doctorVisits || patientDetail.doctorVisits.length === 0 ? (
                     <div className="py-4 text-center text-xs text-text-muted font-mono">
                       No previous physician visits recorded.
                     </div>
                   ) : (
                     patientDetail.doctorVisits.map((visit) => (
-                      <div key={visit._id} className="p-3 bg-[#16212C] space-y-1">
+                      <div key={visit._id} className="p-3 bg-panel space-y-1">
                         <div className="flex items-center justify-between text-xs font-mono">
                           <span className="font-semibold text-text">
                             {visit.visitedBy?.name || visit.visitedBy?.staffId || 'Attending Physician'}
@@ -564,7 +559,7 @@ export default function DoctorDashboard() {
                 value={dischargeNotes}
                 onChange={(e) => setDischargeNotes(e.target.value)}
                 placeholder="Final clearance notes, follow-up instructions, discharge destination..."
-                className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none"
+                className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none transition-colors"
               />
             </div>
 
@@ -572,7 +567,7 @@ export default function DoctorDashboard() {
               <button
                 type="button"
                 onClick={() => setShowDischargeModal(false)}
-                className="flex-1 py-2 px-3 rounded-[3px] border border-border bg-[#16212C] hover:bg-[#1C2B39] text-text-muted text-xs font-mono transition-colors"
+                className="flex-1 py-2 px-3 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text text-xs font-mono transition-colors"
               >
                 Cancel
               </button>
@@ -581,7 +576,7 @@ export default function DoctorDashboard() {
                 type="button"
                 onClick={handleDischargePatient}
                 disabled={isSubmittingDischarge}
-                className="flex-1 py-2 px-3 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text border border-border text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 px-3 rounded-[3px] bg-btn hover:bg-btn-hover text-white text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5"
               >
                 {isSubmittingDischarge ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -612,7 +607,7 @@ export default function DoctorDashboard() {
                 value={deceasedNotes}
                 onChange={(e) => setDeceasedNotes(e.target.value)}
                 placeholder="Clinical details, time of declaration, epidemiological reporting details..."
-                className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none"
+                className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none transition-colors"
               />
             </div>
 
@@ -620,7 +615,7 @@ export default function DoctorDashboard() {
               <button
                 type="button"
                 onClick={() => setShowDeceasedModal(false)}
-                className="flex-1 py-2 px-3 rounded-[3px] border border-border bg-[#16212C] hover:bg-[#1C2B39] text-text-muted text-xs font-mono transition-colors"
+                className="flex-1 py-2 px-3 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text text-xs font-mono transition-colors"
               >
                 Cancel
               </button>

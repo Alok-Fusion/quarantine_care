@@ -25,7 +25,7 @@ export default function RootPage() {
   }, [staff, role, isLoading, router]);
 
   return (
-    <div className="min-h-screen bg-ink flex flex-col items-center justify-center text-text-muted">
+    <div className="min-h-screen bg-bg flex flex-col items-center justify-center text-text-muted">
       <Loader2 className="w-6 h-6 animate-spin text-text-muted mb-3" />
       <p className="text-xs font-mono">Loading Quarantine Care...</p>
     </div>

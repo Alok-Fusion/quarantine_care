@@ -63,7 +63,7 @@ export function Modal({
             </div>
             <button
               onClick={onClose}
-              className="rounded-[2px] p-1 text-text-muted hover:text-text hover:bg-ink border border-transparent hover:border-border transition-colors"
+              className="rounded-[2px] p-1 text-text-muted hover:text-text hover:bg-subpanel border border-transparent hover:border-border transition-colors"
               aria-label="Close modal"
             >
               <X className="w-4 h-4" />

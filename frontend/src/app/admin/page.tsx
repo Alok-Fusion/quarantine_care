@@ -16,15 +16,10 @@ import {
   Award,
   RefreshCw,
   Sparkles,
-  AlertTriangle,
-  CheckCircle2,
   Loader2,
   UserPlus,
   Copy,
   Check,
-  ToggleLeft,
-  ToggleRight,
-  KeyRound,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -191,9 +186,9 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2">
               <Link
                 href="/admit"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text text-xs border border-border font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-btn hover:bg-btn-hover text-white text-xs font-medium transition-colors"
               >
-                <Bed className="w-3.5 h-3.5 text-text-muted" />
+                <Bed className="w-3.5 h-3.5" />
                 <span>Admit / Bed Map</span>
               </Link>
 
@@ -203,7 +198,7 @@ export default function AdminDashboard() {
                   if (activeTab === 'staff') fetchStaffList();
                 }}
                 disabled={isLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-[#1D2B3A] text-text-muted hover:text-text text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text-muted hover:text-text text-xs font-medium transition-colors"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                 <span className="hidden sm:inline">Refresh</span>
@@ -213,8 +208,8 @@ export default function AdminDashboard() {
 
           {/* CRITICAL MORTALITY ALERT BANNER */}
           {hasMortalityAlert && (
-            <div className="p-4 rounded-[3px] bg-[#1B1417] border-l-4 border-l-status-fever border border-border flex items-start gap-3">
-              <div className="p-1 rounded bg-[#2A1E24] text-status-fever shrink-0 mt-0.5">
+            <div className="p-4 rounded-[3px] bg-alert border-l-4 border-l-status-fever border border-border flex items-start gap-3">
+              <div className="p-1 rounded bg-panel text-status-fever shrink-0 mt-0.5 border border-border">
                 <ShieldAlert className="w-5 h-5 text-status-fever" />
               </div>
               <div className="flex-1">
@@ -240,7 +235,7 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab('metrics')}
               className={`px-3 py-1.5 rounded-[3px] text-xs font-mono transition-colors flex items-center gap-1.5 ${
                 activeTab === 'metrics'
-                  ? 'bg-[#0B1118] text-text font-bold border border-border'
+                  ? 'bg-subpanel text-text font-bold border border-border'
                   : 'text-text-muted hover:text-text hover:bg-panel'
               }`}
             >
@@ -252,7 +247,7 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab('staff')}
               className={`px-3 py-1.5 rounded-[3px] text-xs font-mono transition-colors flex items-center gap-1.5 ${
                 activeTab === 'staff'
-                  ? 'bg-[#0B1118] text-text font-bold border border-border'
+                  ? 'bg-subpanel text-text font-bold border border-border'
                   : 'text-text-muted hover:text-text hover:bg-panel'
               }`}
             >
@@ -264,7 +259,7 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab('queue')}
               className={`px-3 py-1.5 rounded-[3px] text-xs font-mono transition-colors flex items-center gap-1.5 ${
                 activeTab === 'queue'
-                  ? 'bg-[#0B1118] text-text font-bold border border-border'
+                  ? 'bg-subpanel text-text font-bold border border-border'
                   : 'text-text-muted hover:text-text hover:bg-panel'
               }`}
             >
@@ -297,7 +292,7 @@ export default function AdminDashboard() {
                       <span>Utilization</span>
                       <span className="tabular-nums text-text font-medium">{occupancyPercent}%</span>
                     </div>
-                    <div className="w-full h-1.5 bg-[#0B1118] rounded-full overflow-hidden border border-border">
+                    <div className="w-full h-1.5 bg-subpanel rounded-full overflow-hidden border border-border">
                       <div
                         className="h-full bg-text-muted transition-all duration-300"
                         style={{ width: `${Math.min(occupancyPercent, 100)}%` }}
@@ -327,7 +322,7 @@ export default function AdminDashboard() {
                 <div
                   className={`bg-panel border rounded-[3px] p-4 flex flex-col justify-between ${
                     hasMortalityAlert
-                      ? 'border-border border-t-2 border-t-status-fever bg-[#1A1417]'
+                      ? 'border-border border-t-2 border-t-status-fever bg-alert'
                       : 'border-border'
                   }`}
                 >
@@ -398,9 +393,9 @@ export default function AdminDashboard() {
 
                 <button
                   onClick={() => setShowAddStaffModal(true)}
-                  className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text border border-border text-xs font-semibold font-mono transition-colors"
+                  className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-btn hover:bg-btn-hover text-white border border-border text-xs font-semibold font-mono transition-colors"
                 >
-                  <UserPlus className="w-3.5 h-3.5 text-text-muted" />
+                  <UserPlus className="w-3.5 h-3.5" />
                   <span>Onboard Staff Member</span>
                 </button>
               </div>
@@ -413,33 +408,33 @@ export default function AdminDashboard() {
               ) : (
                 <div className="overflow-x-auto border border-border rounded-[3px]">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#0B1118] text-text-muted uppercase text-[10px] font-mono border-b border-border">
+                    <thead className="bg-subpanel text-text-muted uppercase text-[10px] font-mono border-b border-border">
                       <tr>
-                        <th className="py-2.5 px-3 font-semibold">Staff ID</th>
-                        <th className="py-2.5 px-3 font-semibold">Name</th>
-                        <th className="py-2.5 px-3 font-semibold">Role</th>
-                        <th className="py-2.5 px-3 font-semibold">Status</th>
-                        <th className="py-2.5 px-3 font-semibold">Created Date</th>
+                        <th className="py-2.5 px-3 font-semibold border-r border-border">Staff ID</th>
+                        <th className="py-2.5 px-3 font-semibold border-r border-border">Name</th>
+                        <th className="py-2.5 px-3 font-semibold border-r border-border">Role</th>
+                        <th className="py-2.5 px-3 font-semibold border-r border-border">Status</th>
+                        <th className="py-2.5 px-3 font-semibold border-r border-border">Created Date</th>
                         <th className="py-2.5 px-3 font-semibold text-right">Access</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border text-text">
                       {staffList.map((member) => (
-                        <tr key={member._id} className="hover:bg-[#1C2B39] transition-colors">
-                          <td className="py-2.5 px-3 font-mono tabular-nums font-bold text-text">
+                        <tr key={member._id} className="hover:bg-panel-hover transition-colors">
+                          <td className="py-2.5 px-3 font-mono tabular-nums font-bold text-text border-r border-border">
                             {member.staffId}
                           </td>
-                          <td className="py-2.5 px-3 font-medium text-text">
+                          <td className="py-2.5 px-3 font-medium text-text border-r border-border">
                             {member.name}
                           </td>
-                          <td className="py-2.5 px-3 capitalize text-text-muted font-mono text-[11px]">
+                          <td className="py-2.5 px-3 capitalize text-text-muted font-mono text-[11px] border-r border-border">
                             {member.role}
                           </td>
-                          <td className="py-2.5 px-3">
+                          <td className="py-2.5 px-3 border-r border-border">
                             <div className="flex items-center gap-1.5">
                               <span
                                 className={`w-2 h-2 rounded-full ${
-                                  member.active !== false ? 'bg-status-stable' : 'bg-[#55697A]'
+                                  member.active !== false ? 'bg-status-stable' : 'bg-border'
                                 }`}
                               />
                               <span className="text-[11px] text-text-muted font-mono">
@@ -447,7 +442,7 @@ export default function AdminDashboard() {
                               </span>
                             </div>
                           </td>
-                          <td className="py-2.5 px-3 text-text-muted font-mono tabular-nums text-[11px]">
+                          <td className="py-2.5 px-3 text-text-muted font-mono tabular-nums text-[11px] border-r border-border">
                             {member.createdAt
                               ? new Date(member.createdAt).toLocaleDateString()
                               : 'Seeded'}
@@ -457,8 +452,8 @@ export default function AdminDashboard() {
                               onClick={() => handleToggleStaffActive(member)}
                               className={`px-2.5 py-1 rounded-[3px] text-xs font-mono font-medium transition-colors border ${
                                 member.active !== false
-                                  ? 'bg-[#0B1118] hover:bg-[#233546] text-text border-border'
-                                  : 'bg-[#0B1118] hover:bg-[#233546] text-text-muted border-border'
+                                  ? 'bg-subpanel hover:bg-panel-hover text-text border-border'
+                                  : 'bg-subpanel hover:bg-panel-hover text-text-muted border-border'
                               }`}
                             >
                               {member.active !== false ? 'Deactivate' : 'Reactivate'}
@@ -486,7 +481,7 @@ export default function AdminDashboard() {
                   </p>
                 </div>
 
-                <div className="text-xs font-mono tabular-nums text-text-muted border border-border px-2.5 py-1 rounded-[2px] bg-[#0B1118]">
+                <div className="text-xs font-mono tabular-nums text-text-muted border border-border px-2.5 py-1 rounded-[2px] bg-subpanel">
                   {dischargeQueue.length} eligible
                 </div>
               </div>
@@ -498,12 +493,12 @@ export default function AdminDashboard() {
               ) : (
                 <div className="overflow-x-auto border border-border rounded-[3px]">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#0B1118] text-text-muted uppercase text-[10px] font-mono border-b border-border">
+                    <thead className="bg-subpanel text-text-muted uppercase text-[10px] font-mono border-b border-border">
                       <tr>
-                        <th className="py-2.5 px-3 font-semibold">Bed</th>
-                        <th className="py-2.5 px-3 font-semibold">Patient</th>
-                        <th className="py-2.5 px-3 font-semibold">Admitted Date</th>
-                        <th className="py-2.5 px-3 font-semibold">Fever-Free Days</th>
+                        <th className="py-2.5 px-3 font-semibold border-r border-border">Bed</th>
+                        <th className="py-2.5 px-3 font-semibold border-r border-border">Patient</th>
+                        <th className="py-2.5 px-3 font-semibold border-r border-border">Admitted Date</th>
+                        <th className="py-2.5 px-3 font-semibold border-r border-border">Fever-Free Days</th>
                         <th className="py-2.5 px-3 font-semibold">Status</th>
                       </tr>
                     </thead>
@@ -511,21 +506,21 @@ export default function AdminDashboard() {
                       {dischargeQueue.map((patient) => (
                         <tr
                           key={patient._id}
-                          className="hover:bg-[#1C2B39] transition-colors border-l-[3px] border-l-status-stable"
+                          className="hover:bg-panel-hover transition-colors border-l-[3px] border-l-status-stable"
                         >
-                          <td className="py-2.5 px-3 font-mono tabular-nums font-bold text-text">
+                          <td className="py-2.5 px-3 font-mono tabular-nums font-bold text-text border-r border-border">
                             {patient.bedNumber}
                           </td>
-                          <td className="py-2.5 px-3 font-medium text-text">
+                          <td className="py-2.5 px-3 font-medium text-text border-r border-border">
                             <div className="flex items-center gap-2">
                               <span className="w-2 h-2 rounded-full bg-status-stable shrink-0" />
                               <span>{patient.name}</span>
                             </div>
                           </td>
-                          <td className="py-2.5 px-3 text-text-muted font-mono tabular-nums">
+                          <td className="py-2.5 px-3 text-text-muted font-mono tabular-nums border-r border-border">
                             {new Date(patient.admittedDate).toLocaleDateString()}
                           </td>
-                          <td className="py-2.5 px-3 font-mono tabular-nums font-semibold text-text">
+                          <td className="py-2.5 px-3 font-mono tabular-nums font-semibold text-text border-r border-border">
                             {patient.eligibility?.consecutiveFeverFreeDays ?? 3} days
                           </td>
                           <td className="py-2.5 px-3 text-text-muted text-[11px] font-mono">
@@ -561,7 +556,7 @@ export default function AdminDashboard() {
                 onChange={(e) => setNewStaffName(e.target.value)}
                 placeholder="e.g. Dr. Rebecca Stone, MD"
                 disabled={isSubmittingStaff}
-                className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none transition-colors"
+                className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none transition-colors"
               />
             </div>
 
@@ -573,7 +568,7 @@ export default function AdminDashboard() {
                 value={newStaffRole}
                 onChange={(e) => setNewStaffRole(e.target.value as StaffRole)}
                 disabled={isSubmittingStaff}
-                className="w-full bg-[#0B1118] border border-border focus:border-[#4E677E] text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none transition-colors font-mono"
+                className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none transition-colors font-mono"
               >
                 <option value="nurse">Nurse (ID Prefix: N)</option>
                 <option value="doctor">Doctor (ID Prefix: D)</option>
@@ -585,7 +580,7 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => setShowAddStaffModal(false)}
-                className="flex-1 px-3 py-2 rounded-[3px] border border-border bg-[#16212C] hover:bg-[#1C2B39] text-text-muted text-xs font-mono transition-colors"
+                className="flex-1 px-3 py-2 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text text-xs font-mono transition-colors"
               >
                 Cancel
               </button>
@@ -593,13 +588,13 @@ export default function AdminDashboard() {
               <button
                 type="submit"
                 disabled={isSubmittingStaff || !newStaffName.trim()}
-                className="flex-1 px-3 py-2 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text border border-border text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 px-3 py-2 rounded-[3px] bg-btn hover:bg-btn-hover text-white border border-border text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5"
               >
                 {isSubmittingStaff ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
                   <>
-                    <UserPlus className="w-3.5 h-3.5 text-text-muted" />
+                    <UserPlus className="w-3.5 h-3.5" />
                     <span>Create & Generate ID</span>
                   </>
                 )}
@@ -622,7 +617,7 @@ export default function AdminDashboard() {
                 <p className="text-xs text-text-muted capitalize font-mono">Role: {createdStaffInfo.role}</p>
               </div>
 
-              <div className="bg-[#0B1118] border border-border rounded-[3px] p-3 space-y-1.5">
+              <div className="bg-subpanel border border-border rounded-[3px] p-3 space-y-1.5">
                 <span className="text-[10px] font-mono text-text-muted uppercase">
                   Assigned Staff ID (Login Key)
                 </span>
@@ -637,7 +632,7 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 onClick={handleCopyStaffId}
-                className="w-full py-2 px-3 rounded-[3px] bg-[#233546] hover:bg-[#2F4458] text-text border border-border font-bold font-mono text-xs flex items-center justify-center gap-2 transition-colors"
+                className="w-full py-2 px-3 rounded-[3px] bg-btn hover:bg-btn-hover text-white border border-border font-bold font-mono text-xs flex items-center justify-center gap-2 transition-colors"
               >
                 {hasCopiedId ? (
                   <>
@@ -646,7 +641,7 @@ export default function AdminDashboard() {
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5 text-text-muted" />
+                    <Copy className="w-3.5 h-3.5" />
                     <span>Copy Staff ID</span>
                   </>
                 )}

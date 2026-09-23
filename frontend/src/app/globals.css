@@ -3,19 +3,81 @@
 @tailwind utilities;
 
 :root {
+  /* Default Dark Theme */
   --ink: #0F1720;
+  --bg: #0F1720;
   --panel: #16212C;
+  --panel-hover: #1C2B39;
+  --subpanel: #0B1118;
+  --input-bg: #0B1118;
   --border: #2A3844;
+  --border-light: #3B4E5E;
   --text: #E7EDF2;
   --text-muted: #8FA1AF;
   --status-fever: #C4472F;
   --status-stable: #4F9D69;
   --status-pending: #D9A441;
+  --accent: #233546;
+  --accent-hover: #2F4458;
+  --btn: #233546;
+  --btn-hover: #2F4458;
+  --btn-active: #1A2835;
+  --alert-bg: #2A1E24;
+  --badge-bg: #16291E;
+}
+
+[data-theme="light"],
+.light {
+  /* Light Theme Variant */
+  --ink: #16212C;
+  --bg: #F3F6F7; /* cool blue-grey paper, NOT warm cream */
+  --panel: #FFFFFF;
+  --panel-hover: #EBF1F5;
+  --subpanel: #E4ECF0;
+  --input-bg: #FFFFFF;
+  --border: #D7DEE3; /* hairline dividers, 1px, visible real grid lines */
+  --border-light: #C2CCD3;
+  --text: #16212C;
+  --text-muted: #5B6B76;
+  --status-fever: #B83D28;
+  --status-stable: #2F7D4F;
+  --status-pending: #B8842E;
+  --accent: #2B5F73; /* steel-teal — used on primary buttons, links, active nav state, focus rings */
+  --accent-hover: #234E5F;
+  --btn: #2B5F73;
+  --btn-hover: #234E5F;
+  --btn-active: #1C3E4C;
+  --alert-bg: #FCEBE9;
+  --badge-bg: #EBF5EF;
+}
+
+[data-theme="dark"],
+.dark {
+  --ink: #0F1720;
+  --bg: #0F1720;
+  --panel: #16212C;
+  --panel-hover: #1C2B39;
+  --subpanel: #0B1118;
+  --input-bg: #0B1118;
+  --border: #2A3844;
+  --border-light: #3B4E5E;
+  --text: #E7EDF2;
+  --text-muted: #8FA1AF;
+  --status-fever: #C4472F;
+  --status-stable: #4F9D69;
+  --status-pending: #D9A441;
+  --accent: #233546;
+  --accent-hover: #2F4458;
+  --btn: #233546;
+  --btn-hover: #2F4458;
+  --btn-active: #1A2835;
+  --alert-bg: #2A1E24;
+  --badge-bg: #16291E;
 }
 
 @layer base {
   body {
-    background-color: var(--ink);
+    background-color: var(--bg);
     color: var(--text);
     font-family: var(--font-ibm-plex-sans), 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   }
@@ -38,14 +100,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0F1720;
+  background: var(--bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2A3844;
+  background: var(--border);
   border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3B4E5E;
+  background: var(--border-light);
 }
