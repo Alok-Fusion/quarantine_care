@@ -25,9 +25,9 @@ export default function RootPage() {
   }, [staff, role, isLoading, router]);
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400">
-      <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-3" />
-      <p className="text-sm font-medium tracking-wide">Loading Quarantine Care...</p>
+    <div className="min-h-screen bg-ink flex flex-col items-center justify-center text-text-muted">
+      <Loader2 className="w-6 h-6 animate-spin text-text-muted mb-3" />
+      <p className="text-xs font-mono">Loading Quarantine Care...</p>
     </div>
   );
 }

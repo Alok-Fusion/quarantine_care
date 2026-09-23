@@ -10,28 +10,31 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-        },
-        clinical: {
-          blue: '#0284c7',
-          cyan: '#06b6d4',
-          indigo: '#4f46e5',
-          rose: '#f43f5e',
-          amber: '#f59e0b',
-        }
+        ink: '#0F1720',
+        panel: '#16212C',
+        'panel-hover': '#1C2B39',
+        border: '#2A3844',
+        'border-light': '#3B4E5E',
+        text: '#E7EDF2',
+        'text-muted': '#8FA1AF',
+        'status-fever': '#C4472F',
+        'status-stable': '#4F9D69',
+        'status-pending': '#D9A441',
+        // Button neutrals
+        btn: '#223242',
+        'btn-hover': '#2C4054',
+        'btn-active': '#1A2835',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-ibm-plex-sans)', 'IBM Plex Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['var(--font-ibm-plex-mono)', 'IBM Plex Mono', 'monospace'],
+      },
+      borderRadius: {
+        DEFAULT: '3px',
+        sm: '2px',
+        md: '4px',
+        lg: '4px',
+        xl: '4px',
       },
     },
   },

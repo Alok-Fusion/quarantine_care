@@ -1,30 +1,23 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Navbar } from '../../components/Navbar';
+import { AppLayout } from '../../components/AppLayout';
 import { RoleGuard } from '../../components/RoleGuard';
 import { Modal } from '../../components/Modal';
+import { TemperatureChart } from '../../components/TemperatureChart';
 import { useToast } from '../../context/ToastContext';
 import { api, ApiError } from '../../lib/api';
 import { Patient, PatientDetailResponse, DoctorVisit } from '../../types';
 import {
   Stethoscope,
   Search,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
+  RefreshCw,
+  Loader2,
+  ChevronRight,
+  AlertCircle,
   FileText,
   UserCheck,
   UserX,
-  Calendar,
-  Thermometer,
-  Bed,
-  RefreshCw,
-  Loader2,
-  ArrowRight,
-  Flame,
-  AlertCircle,
-  Sparkles,
 } from 'lucide-react';
 
 export default function DoctorDashboard() {
@@ -96,21 +89,20 @@ export default function DoctorDashboard() {
     setIsSubmittingVisit(true);
 
     try {
-      const newVisit = await api.post<DoctorVisit>(
+      await api.post<DoctorVisit>(
         `/api/patients/${selectedPatientId}/visit`,
         { notes: visitNotes.trim() }
       );
 
-      showToast('Doctor consultation and examination logged.', 'success', 'Visit Recorded');
+      showToast('Clinical visit consultation recorded', 'info');
       setVisitNotes('');
 
-      // Refresh detail and patient list
       await Promise.all([fetchPatientDetail(selectedPatientId), fetchPatients()]);
     } catch (err: any) {
       console.error('Visit error', err);
       const msg = err.data?.error || err.message || 'Failed to record visit.';
       setVisitErrorMessage(msg);
-      showToast(msg, 'error', 'Visit Blocked');
+      showToast(msg, 'error');
     } finally {
       setIsSubmittingVisit(false);
     }
@@ -126,9 +118,8 @@ export default function DoctorDashboard() {
       });
 
       showToast(
-        `${patientDetail?.patient.name} has been successfully cleared and discharged.`,
-        'success',
-        'Patient Discharged'
+        `Patient ${patientDetail?.patient.name} discharged successfully`,
+        'info'
       );
 
       setShowDischargeModal(false);
@@ -147,7 +138,7 @@ export default function DoctorDashboard() {
   const handleMarkDeceased = async () => {
     if (!selectedPatientId) return;
     if (!deceasedNotes.trim()) {
-      showToast('Clinical deceased note is required.', 'warning');
+      showToast('Clinical deceased note is required', 'warning');
       return;
     }
 
@@ -159,9 +150,8 @@ export default function DoctorDashboard() {
       });
 
       showToast(
-        `Patient record updated to deceased. Facility statistics adjusted.`,
-        'info',
-        'Mortality Logged'
+        `Patient record marked as deceased`,
+        'warning'
       );
 
       setShowDeceasedModal(false);
@@ -177,7 +167,6 @@ export default function DoctorDashboard() {
     }
   };
 
-  // Filter and sort patients: Not Visited Today highlighted and prioritized
   const filteredPatients = patients
     .filter((patient) => {
       const matchesSearch =
@@ -191,7 +180,6 @@ export default function DoctorDashboard() {
       return true;
     })
     .sort((a, b) => {
-      // Prioritize unvisited patients first
       if (a.visitedToday === b.visitedToday) return 0;
       return a.visitedToday ? 1 : -1;
     });
@@ -201,222 +189,185 @@ export default function DoctorDashboard() {
 
   return (
     <RoleGuard allowedRoles={['doctor']}>
-      <div className="min-h-screen bg-slate-950 flex flex-col">
-        <Navbar />
-
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <AppLayout>
+        <div className="p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto space-y-5">
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border">
             <div>
-              <div className="flex items-center gap-2 text-sky-400 font-semibold text-xs uppercase tracking-wider mb-1">
-                <Stethoscope className="w-4 h-4" /> Attending Physician Station
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">
-                Doctor Rounds Portal
+              <h1 className="text-base font-bold text-text tracking-tight uppercase font-mono">
+                Clinical Rounds — Physician Portal
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-                Conduct clinical assessments, review vitals history, and manage quarantine discharges.
+              <p className="text-xs text-text-muted mt-0.5">
+                Review bedside temperature logs, conduct gated rounds consultations, and manage discharge.
               </p>
             </div>
 
-            {/* Quick Metrics */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 flex items-center gap-2.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Rounds Pending</div>
-                  <div className="text-base font-extrabold text-amber-400 leading-tight">
-                    {unvisitedCount} Patients
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 flex items-center gap-2.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Eligible for Release</div>
-                  <div className="text-base font-extrabold text-emerald-400 leading-tight">
-                    {eligibleCount} Patients
-                  </div>
-                </div>
-              </div>
-
+            <div className="flex items-center gap-2">
               <button
                 onClick={fetchPatients}
                 disabled={isLoading}
-                className="p-2.5 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 transition-all hover:border-slate-700"
-                title="Refresh Patient List"
+                className="p-1.5 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text-muted hover:text-text transition-colors"
+                title="Refresh"
               >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
             </div>
           </div>
 
           {/* Search & Tabs */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search patient by name or bed..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 transition-all"
+                placeholder="Search bed or patient..."
+                className="w-full pl-8 pr-3 py-1.5 bg-panel border border-border text-xs text-text rounded-[3px] focus:outline-none focus:border-text-muted placeholder:text-text-muted/60"
               />
             </div>
 
-            <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl">
+            <div className="flex items-center gap-1 p-0.5 bg-panel border border-border rounded-[3px]">
               <button
                 onClick={() => setFilterTab('not-visited')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 text-xs font-mono transition-colors rounded-[2px] flex items-center gap-1.5 ${
                   filterTab === 'not-visited'
-                    ? 'bg-sky-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-ink text-text font-bold border border-border'
+                    : 'text-text-muted hover:text-text'
                 }`}
               >
-                <Clock className="w-3.5 h-3.5" />
-                <span>Not Visited Today ({unvisitedCount})</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-status-pending" />
+                <span>Rounds Needed ({unvisitedCount})</span>
               </button>
               <button
                 onClick={() => setFilterTab('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-2.5 py-1 text-xs font-mono transition-colors rounded-[2px] ${
                   filterTab === 'all'
-                    ? 'bg-sky-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-ink text-text font-bold border border-border'
+                    : 'text-text-muted hover:text-text'
                 }`}
               >
-                All Patients ({patients.length})
+                All ({patients.length})
               </button>
               <button
                 onClick={() => setFilterTab('discharge-eligible')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 text-xs font-mono transition-colors rounded-[2px] flex items-center gap-1.5 ${
                   filterTab === 'discharge-eligible'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-ink text-text font-bold border border-border'
+                    : 'text-text-muted hover:text-text'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Discharge Queue ({eligibleCount})</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-status-stable" />
+                <span>Discharge Ready ({eligibleCount})</span>
               </button>
             </div>
           </div>
 
-          {/* Patients Grid */}
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-48 bg-slate-900/50 rounded-2xl border border-slate-800/80 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : filteredPatients.length === 0 ? (
-            <div className="text-center py-16 bg-slate-900/40 rounded-2xl border border-slate-800/80 p-8">
-              <Stethoscope className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-slate-300">No Patients in this View</h3>
-              <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                All rounds in this filter category have been completed or no matching records found.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredPatients.map((patient) => {
-                const visitedToday = patient.visitedToday;
-                const tempLoggedToday = patient.tempLoggedToday;
-                const isEligible = patient.dischargeEligible;
-                const feverFreeDays = patient.consecutiveFeverFreeDays ?? 0;
+          {/* DENSE SINGLE-COLUMN TABLE */}
+          <div className="border border-border bg-panel rounded-[3px] overflow-hidden">
+            {isLoading ? (
+              <div className="py-12 text-center text-xs text-text-muted font-mono">
+                Loading rounds queue...
+              </div>
+            ) : filteredPatients.length === 0 ? (
+              <div className="py-12 text-center text-xs text-text-muted">
+                No patients match the current rounds filter.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-ink text-text-muted text-[11px] font-mono uppercase">
+                      <th className="py-2.5 px-4 font-semibold">Bed</th>
+                      <th className="py-2.5 px-4 font-semibold">Patient Name</th>
+                      <th className="py-2.5 px-4 font-semibold">Today's Vitals</th>
+                      <th className="py-2.5 px-4 font-semibold">Fever Streak</th>
+                      <th className="py-2.5 px-4 font-semibold">Rounds Status</th>
+                      <th className="py-2.5 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {filteredPatients.map((patient) => {
+                      const visitedToday = patient.visitedToday;
+                      const hasTempToday = patient.tempLoggedToday;
+                      const isEligible = patient.dischargeEligible;
+                      const feverFreeDays = patient.consecutiveFeverFreeDays ?? 0;
 
-                return (
-                  <div
-                    key={patient._id}
-                    onClick={() => fetchPatientDetail(patient._id)}
-                    className={`group bg-slate-900 hover:bg-slate-850 border rounded-2xl p-5 shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between relative overflow-hidden ${
-                      isEligible
-                        ? 'border-emerald-500/50 hover:border-emerald-400'
-                        : !visitedToday
-                        ? 'border-sky-500/40 hover:border-sky-400'
-                        : 'border-slate-800 hover:border-slate-700'
-                    }`}
-                  >
-                    {/* Top status indicator strip */}
-                    <div
-                      className={`absolute top-0 left-0 right-0 h-1 ${
-                        isEligible
-                          ? 'bg-emerald-500'
-                          : !visitedToday
-                          ? 'bg-sky-500'
-                          : 'bg-slate-700'
-                      }`}
-                    />
+                      // 3px colored left-border on row
+                      let borderStatusClass = 'border-l-[3px] border-l-status-pending';
+                      let dotColor = 'bg-status-pending';
 
-                    <div>
-                      {/* Bed & Badges */}
-                      <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-800 text-slate-200 border border-slate-700">
-                          <Bed className="w-3.5 h-3.5 text-sky-400" />
-                          {patient.bedNumber}
-                        </span>
+                      if (isEligible) {
+                        borderStatusClass = 'border-l-[3px] border-l-status-stable';
+                        dotColor = 'bg-status-stable';
+                      } else if (visitedToday) {
+                        borderStatusClass = 'border-l-[3px] border-l-border';
+                        dotColor = 'bg-text-muted';
+                      }
 
-                        <div className="flex items-center gap-1.5">
-                          {isEligible && (
-                            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                              Discharge Ready
-                            </span>
-                          )}
-
-                          {visitedToday ? (
-                            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Visited
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30 flex items-center gap-1">
-                              <Clock className="w-3 h-3" /> Needs Visit
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Name */}
-                      <h3 className="text-base font-bold text-slate-100 group-hover:text-sky-300 transition-colors">
-                        {patient.name}
-                      </h3>
-
-                      {/* Vitals Info Indicator */}
-                      <div className="mt-2.5 flex items-center gap-2 text-xs">
-                        <div
-                          className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold ${
-                            tempLoggedToday
-                              ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-800/40'
-                              : 'bg-amber-950/40 text-amber-300 border border-amber-800/40'
-                          }`}
+                      return (
+                        <tr
+                          key={patient._id}
+                          onClick={() => fetchPatientDetail(patient._id)}
+                          className={`hover:bg-panel-hover transition-colors cursor-pointer ${borderStatusClass}`}
                         >
-                          <Thermometer className="w-3 h-3" />
-                          {tempLoggedToday
-                            ? `Vitals Recorded (${patient.latestTemperature?.value ?? '--'}°F)`
-                            : 'Vitals Pending'}
-                        </div>
-                      </div>
-                    </div>
+                          <td className="py-2.5 px-4 font-mono font-bold text-text tabular-nums whitespace-nowrap">
+                            {patient.bedNumber}
+                          </td>
 
-                    {/* Footer */}
-                    <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                      <div className="text-slate-400">
-                        <span className="font-bold text-slate-200 font-mono">{feverFreeDays}</span>{' '}
-                        fever-free days
-                      </div>
+                          <td className="py-2.5 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
+                              <span className="font-medium text-text">{patient.name}</span>
+                            </div>
+                          </td>
 
-                      <div className="text-sky-400 group-hover:translate-x-1 transition-transform flex items-center gap-1 font-semibold text-xs">
-                        <span>Examine</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </main>
+                          <td className="py-2.5 px-4 font-mono tabular-nums whitespace-nowrap">
+                            {hasTempToday ? (
+                              <span className="text-text">
+                                {patient.latestTemperature?.value}°F{' '}
+                                <span className="text-text-muted text-[10px]">[Recorded]</span>
+                              </span>
+                            ) : (
+                              <span className="text-status-pending font-bold text-[11px]">
+                                [No Vitals Today]
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="py-2.5 px-4 font-mono tabular-nums whitespace-nowrap">
+                            <span className="font-semibold text-text">{feverFreeDays}</span>
+                            <span className="text-text-muted text-[11px]"> / 3 d</span>
+                            {isEligible && (
+                              <span className="ml-1 text-status-stable font-bold text-[10px]">
+                                (Ready)
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="py-2.5 px-4 whitespace-nowrap font-mono text-[11px]">
+                            {visitedToday ? (
+                              <span className="text-text-muted">Visited</span>
+                            ) : (
+                              <span className="text-status-pending font-bold">Needs Rounds</span>
+                            )}
+                          </td>
+
+                          <td className="py-2.5 px-3 text-right">
+                            <span className="text-[11px] font-mono text-text-muted hover:text-text inline-flex items-center gap-0.5">
+                              <span>Examine</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Patient Clinical Examination Modal */}
         <Modal
@@ -425,7 +376,7 @@ export default function DoctorDashboard() {
             setSelectedPatientId(null);
             setPatientDetail(null);
           }}
-          title={patientDetail?.patient.name || 'Patient Clinical Examination'}
+          title={patientDetail?.patient.name || 'Clinical Examination'}
           description={
             patientDetail
               ? `${patientDetail.patient.bedNumber} • Admitted ${new Date(
@@ -433,93 +384,77 @@ export default function DoctorDashboard() {
                 ).toLocaleDateString()}`
               : ''
           }
-          maxWidth="xl"
+          maxWidth="lg"
         >
           {isLoadingDetail || !patientDetail ? (
-            <div className="py-12 flex flex-col items-center justify-center text-slate-400">
-              <Loader2 className="w-8 h-8 animate-spin text-sky-500 mb-2" />
-              <p className="text-xs">Loading patient chart...</p>
+            <div className="py-8 text-center text-xs text-text-muted font-mono">
+              Loading clinical chart...
             </div>
           ) : (
-            <div className="space-y-6">
-              {/* Patient Vitals & Discharge Readiness Alert Bar */}
-              <div
-                className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                  patientDetail.eligibility.isEligible
-                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-100'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-300'
-                }`}
-              >
+            <div className="space-y-4">
+              {/* Status Header Bar */}
+              <div className="border border-border bg-ink p-3 rounded-[3px] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Discharge Protocol Assessment
+                  <div className="font-mono text-[11px] text-text-muted uppercase">
+                    Discharge Protocol
                   </div>
-                  <div className="text-sm font-semibold mt-0.5">
-                    {patientDetail.eligibility.consecutiveFeverFreeDays} consecutive fever-free days
-                    (3 required)
+                  <div className="font-bold text-text mt-0.5">
+                    {patientDetail.eligibility.consecutiveFeverFreeDays} / 3 Fever-Free Days
+                    {patientDetail.eligibility.isEligible && (
+                      <span className="ml-2 text-status-stable font-mono">[Discharge Eligible]</span>
+                    )}
                   </div>
-                  <p className="text-xs opacity-80 mt-0.5">{patientDetail.eligibility.reason}</p>
                 </div>
 
                 <div className="flex items-center gap-2">
                   {patientDetail.eligibility.isEligible && (
                     <button
                       onClick={() => setShowDischargeModal(true)}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/50 flex items-center gap-1.5 transition-all"
+                      className="px-3 py-1.5 rounded-[3px] bg-btn hover:bg-btn-hover active:bg-btn-active border border-border text-text font-bold text-xs flex items-center gap-1 transition-colors"
                     >
-                      <UserCheck className="w-4 h-4" />
-                      <span>Discharge Patient</span>
+                      <UserCheck className="w-3.5 h-3.5 text-status-stable" />
+                      <span>Discharge</span>
                     </button>
                   )}
 
                   <button
                     onClick={() => setShowDeceasedModal(true)}
-                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-rose-950 hover:border-rose-500/40 hover:text-rose-300 border border-slate-700 text-slate-400 text-xs font-semibold transition-all flex items-center gap-1.5"
-                    title="Mark Patient Deceased"
+                    className="px-2.5 py-1.5 rounded-[3px] border border-border bg-ink hover:bg-panel text-status-fever text-xs font-mono transition-colors"
                   >
-                    <UserX className="w-3.5 h-3.5" />
-                    <span>Deceased</span>
+                    Mark Deceased
                   </button>
                 </div>
               </div>
 
-              {/* Consultation / Visit Notes Form */}
-              <div className="bg-slate-950/80 border border-sky-500/30 rounded-2xl p-4 sm:p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
-                    <FileText className="w-4 h-4" />
-                    Record Daily Clinical Consultation
-                  </h4>
-
+              {/* Consultation Notes Form */}
+              <div className="border border-border bg-ink p-3.5 rounded-[3px] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold uppercase tracking-wider text-text font-mono flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-text-muted" />
+                    <span>Daily Rounds Notes</span>
+                  </div>
                   {patientDetail.visitedToday && (
-                    <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    <span className="text-[10px] font-mono text-text-muted">
                       Rounds logged today
                     </span>
                   )}
                 </div>
 
-                {/* Inline Backend Error Box (when visit is blocked due to missing temperature) */}
+                {/* Inline Backend Error (when visit is blocked by missing temperature) */}
                 {visitErrorMessage && (
-                  <div className="mb-3 p-3 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-200 text-xs flex items-start gap-2 animate-fadeIn">
-                    <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold">Protocol Blocked: </span>
-                      {visitErrorMessage}
-                    </div>
+                  <div className="p-2.5 rounded-[2px] border border-status-fever/60 bg-panel text-status-fever text-xs flex items-start gap-1.5 font-mono">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <div>{visitErrorMessage}</div>
                   </div>
                 )}
 
                 {!patientDetail.tempLoggedToday && (
-                  <div className="mb-3 p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-200 text-xs flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>
-                      Notice: Nursing staff has not yet recorded today's temperature. Visit will be
-                      gated until vitals are submitted.
-                    </span>
+                  <div className="p-2 rounded-[2px] border border-status-pending/50 bg-panel text-status-pending text-xs font-mono">
+                    [!] Notice: Morning vitals not yet logged. Visit will be rejected until temperature is recorded.
                   </div>
                 )}
 
-                <form onSubmit={handleRecordVisit} className="space-y-3">
+                <form onSubmit={handleRecordVisit} className="space-y-2">
                   <textarea
                     rows={3}
                     value={visitNotes}
@@ -527,21 +462,21 @@ export default function DoctorDashboard() {
                       setVisitNotes(e.target.value);
                       if (visitErrorMessage) setVisitErrorMessage('');
                     }}
-                    placeholder="Enter examination notes, treatment adjustments, pulmonary findings..."
+                    placeholder="Document clinical assessment, auscultation, treatment plans..."
                     disabled={isSubmittingVisit}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-sky-500 text-slate-100 rounded-xl p-3 text-xs placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 resize-none"
+                    className="w-full bg-panel border border-border focus:border-text-muted text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none font-sans"
                   />
 
                   <div className="flex justify-end">
                     <button
                       type="submit"
                       disabled={isSubmittingVisit || !visitNotes.trim()}
-                      className="bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-xs shadow-md shadow-sky-950/50 transition-all"
+                      className="bg-btn hover:bg-btn-hover active:bg-btn-active border border-border disabled:opacity-50 text-text font-medium px-4 py-1.5 rounded-[3px] text-xs transition-colors flex items-center gap-1.5"
                     >
                       {isSubmittingVisit ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : (
-                        <Stethoscope className="w-4 h-4" />
+                        <Stethoscope className="w-3.5 h-3.5" />
                       )}
                       <span>Log Physician Visit</span>
                     </button>
@@ -549,29 +484,33 @@ export default function DoctorDashboard() {
                 </form>
               </div>
 
-              {/* Doctor Visits History */}
+              {/* Temperature Chart */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                  <Stethoscope className="w-3.5 h-3.5 text-sky-400" />
-                  Physician Visit History ({patientDetail.doctorVisits.length} Records)
-                </h4>
+                <TemperatureChart logs={patientDetail.temperatureLogs} />
+              </div>
+
+              {/* Doctor Visits History Table */}
+              <div>
+                <div className="text-[11px] font-mono uppercase text-text-muted mb-2">
+                  Physician Rounds History ({patientDetail.doctorVisits.length})
+                </div>
 
                 {patientDetail.doctorVisits.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-4 text-center bg-slate-950/40 rounded-xl border border-slate-800/60">
-                    No doctor consultations recorded yet.
+                  <p className="text-xs text-text-muted py-3 text-center border border-border bg-ink rounded-[3px]">
+                    No doctor consultations recorded.
                   </p>
                 ) : (
-                  <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
+                  <div className="space-y-1.5 max-h-40 overflow-y-auto">
                     {patientDetail.doctorVisits.map((visit) => (
                       <div
                         key={visit._id}
-                        className="bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-xs"
+                        className="border border-border bg-ink p-2.5 rounded-[3px] text-xs space-y-1"
                       >
-                        <div className="flex items-center justify-between text-slate-400 mb-1">
-                          <span className="font-semibold text-slate-200">
-                            {visit.visitedBy?.name || 'Attending Physician'}
+                        <div className="flex items-center justify-between text-[11px] font-mono text-text-muted">
+                          <span className="font-semibold text-text">
+                            {visit.visitedBy?.name || 'Physician'}
                           </span>
-                          <span className="font-mono text-[11px]">
+                          <span className="tabular-nums">
                             {new Date(visit.visitedAt).toLocaleString([], {
                               month: 'short',
                               day: 'numeric',
@@ -580,49 +519,13 @@ export default function DoctorDashboard() {
                             })}
                           </span>
                         </div>
-                        <p className="text-slate-300 italic">"{visit.notes}"</p>
+                        <p className="text-text font-sans leading-relaxed">
+                          "{visit.notes}"
+                        </p>
                       </div>
                     ))}
                   </div>
                 )}
-              </div>
-
-              {/* Temperature History Reference */}
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-                  <Thermometer className="w-3.5 h-3.5 text-emerald-400" />
-                  Recent Temperature Readings
-                </h4>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {patientDetail.temperatureLogs.slice(0, 4).map((log) => (
-                    <div
-                      key={log._id}
-                      className="bg-slate-950/50 border border-slate-800 rounded-xl p-2.5 text-center"
-                    >
-                      <div className="text-[10px] text-slate-500 font-mono">
-                        {new Date(log.loggedAt).toLocaleDateString([], {
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </div>
-                      <div className="text-sm font-bold font-mono text-slate-100 mt-0.5">
-                        {log.value}°F
-                      </div>
-                      <div className="mt-1">
-                        {log.hasFever ? (
-                          <span className="text-[9px] font-bold text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/30">
-                            Fever
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/30">
-                            Normal
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           )}
@@ -632,42 +535,33 @@ export default function DoctorDashboard() {
         <Modal
           isOpen={showDischargeModal}
           onClose={() => setShowDischargeModal(false)}
-          title="Confirm Patient Discharge Clearance"
+          title="Discharge Clearance Protocol"
           maxWidth="sm"
         >
-          <div className="space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
-              <UserCheck className="w-6 h-6" />
-            </div>
-
-            <div className="text-center">
-              <h4 className="text-sm font-bold text-slate-100">
-                Discharge {patientDetail?.patient.name}?
-              </h4>
-              <p className="text-xs text-slate-400 mt-1">
-                Patient has satisfied the 3-day fever-free quarantine protocol and is cleared for
-                release.
-              </p>
-            </div>
+          <div className="space-y-3 text-xs">
+            <p className="text-text leading-relaxed">
+              Patient <span className="font-bold">{patientDetail?.patient.name}</span> has completed{' '}
+              <span className="font-mono font-bold">3 consecutive fever-free days</span> and is eligible for release.
+            </p>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-mono text-text-muted uppercase mb-1">
                 Discharge Note (Optional)
               </label>
               <textarea
                 rows={2}
                 value={dischargeNotes}
                 onChange={(e) => setDischargeNotes(e.target.value)}
-                placeholder="Discharge summary or instructions..."
-                className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl p-2.5 text-xs focus:outline-none focus:border-emerald-500"
+                placeholder="Final clearance notes..."
+                className="w-full bg-ink border border-border focus:border-text-muted text-text rounded-[3px] p-2 text-xs focus:outline-none resize-none"
               />
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowDischargeModal(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
+                className="flex-1 px-3 py-1.5 rounded-[3px] border border-border bg-ink hover:bg-panel text-text-muted text-xs transition-colors"
               >
                 Cancel
               </button>
@@ -676,59 +570,45 @@ export default function DoctorDashboard() {
                 type="button"
                 disabled={isSubmittingDischarge}
                 onClick={handleDischargePatient}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-1.5"
+                className="flex-1 px-3 py-1.5 rounded-[3px] bg-btn hover:bg-btn-hover active:bg-btn-active border border-border text-text font-bold text-xs transition-colors"
               >
-                {isSubmittingDischarge ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <span>Sign Discharge</span>
-                )}
+                {isSubmittingDischarge ? 'Processing...' : 'Confirm Discharge'}
               </button>
             </div>
           </div>
         </Modal>
 
-        {/* High Friction Mark Deceased Modal */}
+        {/* Mark Deceased Modal */}
         <Modal
           isOpen={showDeceasedModal}
           onClose={() => setShowDeceasedModal(false)}
-          title="Record Patient Mortality"
+          title="Record Mortality"
           maxWidth="sm"
         >
-          <div className="space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-500 flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-
-            <div className="text-center">
-              <h4 className="text-sm font-bold text-rose-400">
-                Mark {patientDetail?.patient.name} as Deceased?
-              </h4>
-              <p className="text-xs text-slate-400 mt-1">
-                This will mark the patient status as deceased, update facility mortality metrics, and
-                close the isolation case.
-              </p>
-            </div>
+          <div className="space-y-3 text-xs">
+            <p className="text-status-fever font-mono leading-relaxed">
+              [!] WARNING: This will mark {patientDetail?.patient.name} as deceased and close the quarantine isolation case.
+            </p>
 
             <div>
-              <label className="block text-[11px] font-bold text-rose-300 uppercase tracking-wider mb-1.5">
-                Clinical Cause / Deceased Notes *
+              <label className="block text-[11px] font-mono text-text-muted uppercase mb-1">
+                Clinical Cause & Mortality Notes *
               </label>
               <textarea
                 rows={3}
                 required
                 value={deceasedNotes}
                 onChange={(e) => setDeceasedNotes(e.target.value)}
-                placeholder="Document clinical complications, time of death, cause..."
-                className="w-full bg-slate-950 border border-rose-900/60 focus:border-rose-500 text-slate-100 rounded-xl p-2.5 text-xs focus:outline-none"
+                placeholder="Document time of death, primary cause, complications..."
+                className="w-full bg-ink border border-border focus:border-status-fever text-text rounded-[3px] p-2 text-xs focus:outline-none resize-none font-mono"
               />
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowDeceasedModal(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
+                className="flex-1 px-3 py-1.5 rounded-[3px] border border-border bg-ink hover:bg-panel text-text-muted text-xs transition-colors"
               >
                 Cancel
               </button>
@@ -737,18 +617,14 @@ export default function DoctorDashboard() {
                 type="button"
                 disabled={isSubmittingDeceased || !deceasedNotes.trim()}
                 onClick={handleMarkDeceased}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-bold transition-colors shadow-lg shadow-rose-950/50 flex items-center justify-center gap-1.5"
+                className="flex-1 px-3 py-1.5 rounded-[3px] border border-status-fever bg-ink hover:bg-panel text-status-fever font-bold text-xs transition-colors disabled:opacity-50"
               >
-                {isSubmittingDeceased ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <span>Confirm Deceased</span>
-                )}
+                {isSubmittingDeceased ? 'Recording...' : 'Confirm Deceased'}
               </button>
             </div>
           </div>
         </Modal>
-      </div>
+      </AppLayout>
     </RoleGuard>
   );
 }

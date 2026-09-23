@@ -36,36 +36,37 @@ export function Modal({
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-lg',
-    xl: 'max-w-xl',
+    xl: 'max-w-2xl',
   }[maxWidth];
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
+      {/* Flat dark overlay backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/70 transition-opacity"
         onClick={onClose}
       />
 
       {/* Dialog container */}
-      <div className="flex min-h-full items-center justify-center p-4 text-center">
+      <div className="flex min-h-full items-center justify-center p-3 sm:p-4 text-left">
         <div
-          className={`w-full ${maxWidthClass} transform overflow-hidden rounded-2xl bg-slate-900 border border-slate-800 p-6 text-left align-middle shadow-2xl transition-all`}
+          className={`w-full ${maxWidthClass} transform overflow-hidden rounded-[4px] bg-panel border border-border p-5 sm:p-6 transition-all text-text relative`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-start justify-between pb-4 border-b border-slate-800/80">
+          <div className="flex items-start justify-between pb-3 border-b border-border">
             <div>
-              <h3 className="text-lg font-bold text-slate-100 tracking-tight">{title}</h3>
+              <h3 className="text-sm sm:text-base font-bold text-text tracking-tight">{title}</h3>
               {description && (
-                <p className="mt-1 text-xs text-slate-400">{description}</p>
+                <p className="mt-1 text-xs text-text-muted">{description}</p>
               )}
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+              className="rounded-[2px] p-1 text-text-muted hover:text-text hover:bg-ink border border-transparent hover:border-border transition-colors"
+              aria-label="Close modal"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 

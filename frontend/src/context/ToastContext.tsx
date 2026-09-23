@@ -44,39 +44,29 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast, removeToast }}>
       {children}
       {/* Toast Notification Container */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full px-4 pointer-events-none">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 pointer-events-none">
         {toasts.map((toast) => {
-          const icons = {
-            success: <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />,
-            error: <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />,
-            warning: <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />,
-            info: <Info className="w-5 h-5 text-sky-500 shrink-0 mt-0.5" />,
-          };
-
-          const borderColors = {
-            success: 'border-emerald-500/30 bg-emerald-950/80 text-emerald-100',
-            error: 'border-rose-500/30 bg-rose-950/80 text-rose-100',
-            warning: 'border-amber-500/30 bg-amber-950/80 text-amber-100',
-            info: 'border-sky-500/30 bg-sky-950/80 text-sky-100',
+          const statusBorders = {
+            success: 'border-l-status-stable',
+            error: 'border-l-status-fever',
+            warning: 'border-l-status-pending',
+            info: 'border-l-[#4B6275]',
           };
 
           return (
             <div
               key={toast.id}
-              className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl border backdrop-blur-md shadow-2xl transition-all duration-300 transform translate-y-0 ${
-                borderColors[toast.type]
-              }`}
+              className={`pointer-events-auto flex items-start gap-2.5 p-3 rounded-[4px] border border-border bg-panel text-text shadow-lg border-l-[3px] ${statusBorders[toast.type]}`}
             >
-              {icons[toast.type]}
-              <div className="flex-1 text-sm">
-                {toast.title && <div className="font-semibold">{toast.title}</div>}
-                <div className="opacity-90">{toast.message}</div>
+              <div className="flex-1 text-xs">
+                {toast.title && <div className="font-semibold text-text mb-0.5">{toast.title}</div>}
+                <div className="text-text-muted leading-relaxed">{toast.message}</div>
               </div>
               <button
                 onClick={() => removeToast(toast.id)}
-                className="opacity-70 hover:opacity-100 transition-opacity p-1 text-slate-300"
+                className="text-text-muted hover:text-text transition-colors p-0.5"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           );
