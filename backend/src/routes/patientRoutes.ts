@@ -69,11 +69,11 @@ router.get('/discharge-queue', async (req: Request, res: Response): Promise<void
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const filterQuery = req.query.filter as string;
-    const statusQuery = (req.query.status as string) || 'active';
+    const statusQuery = (req.query.status as string) || 'all';
     const searchQuery = req.query.search as string;
 
     const query: any = {};
-    if (statusQuery !== 'all') {
+    if (statusQuery && statusQuery !== 'all') {
       query.status = statusQuery;
     }
 
@@ -318,8 +318,18 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       (visit) => visit.visitedAt >= todayStart && visit.visitedAt <= todayEnd
     );
 
+    const isEligible = eligibility.isEligible;
+    const enrichedPatient = {
+      ...patient.toObject(),
+      tempLoggedToday,
+      visitedToday,
+      consecutiveFeverFreeDays: eligibility.consecutiveFeverFreeDays,
+      dischargeEligible: isEligible,
+      eligibility,
+    };
+
     res.json({
-      patient,
+      patient: enrichedPatient,
       temperatureLogs,
       doctorVisits,
       eligibility,
@@ -510,7 +520,7 @@ router.post(
  */
 router.post(
   '/:id/discharge',
-  requireRole('doctor'),
+  requireRole('doctor', 'admin'),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const id = req.params.id as string;

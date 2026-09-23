@@ -12,7 +12,7 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
 
   if (!logs || logs.length === 0) {
     return (
-      <div className="py-8 text-center text-xs text-text-muted border border-border bg-subpanel rounded-[3px] font-mono">
+      <div className="py-8 text-center text-xs text-text-muted border border-border/80 bg-subpanel/50 rounded-xl font-mono">
         NO TEMPERATURE READINGS RECORDED
       </div>
     );
@@ -28,10 +28,10 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
   const maxTemp = Math.max(104, Math.ceil(Math.max(...values) + 0.5));
   const tempRange = maxTemp - minTemp || 1;
 
-  const chartHeight = 140;
-  const chartWidth = 560;
-  const paddingX = 40;
-  const paddingY = 20;
+  const chartHeight = 160;
+  const chartWidth = 580;
+  const paddingX = 45;
+  const paddingY = 25;
 
   const getX = (index: number) => {
     if (sortedLogs.length <= 1) return chartWidth / 2;
@@ -50,24 +50,29 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
   const feverY = getY(100.4);
   const baselineY = getY(98.6);
 
-  // Generate SVG path for line
+  // Generate SVG path for line & area
   const points = sortedLogs.map((log, i) => `${getX(i)},${getY(log.value)}`);
   const pathD = points.length > 1 ? `M ${points.join(' L ')}` : '';
+  const areaD = points.length > 1
+    ? `M ${getX(0)},${chartHeight - paddingY} L ${points.join(' L ')} L ${getX(sortedLogs.length - 1)},${chartHeight - paddingY} Z`
+    : '';
 
   return (
-    <div className="border border-border bg-subpanel p-3.5 rounded-[3px] space-y-2">
-      <div className="flex items-center justify-between text-[11px] font-mono text-text-muted border-b border-border/50 pb-2">
+    <div className="border border-border/80 bg-subpanel/80 p-4 rounded-xl space-y-3 shadow-inner">
+      <div className="flex flex-wrap items-center justify-between text-xs font-mono text-text-muted border-b border-border/60 pb-2.5 gap-2">
         <div className="flex items-center gap-2">
-          <span className="font-semibold uppercase tracking-wider text-text">Vital Signs Trend</span>
-          <span className="text-[10px] text-text-muted">({sortedLogs.length} readings)</span>
-        </div>
-        <div className="flex items-center gap-4 text-[10px]">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-0.5 bg-status-fever" />
-            <span className="text-status-fever font-semibold">100.4°F Threshold</span>
+          <span className="font-bold uppercase tracking-wider text-text">Vital Signs Trajectory</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-panel border border-border text-accent">
+            {sortedLogs.length} readings
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-0.5 bg-border" />
+        </div>
+        <div className="flex items-center gap-4 text-[11px]">
+          <span className="flex items-center gap-1.5 font-semibold text-status-fever">
+            <span className="w-2.5 h-0.5 bg-status-fever rounded-full" />
+            <span>100.4°F Fever Alert</span>
+          </span>
+          <span className="flex items-center gap-1.5 text-text-muted">
+            <span className="w-2.5 h-0.5 bg-border rounded-full" />
             <span>98.6°F Baseline</span>
           </span>
         </div>
@@ -76,62 +81,81 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
       <div className="relative w-full overflow-x-auto py-1">
         <svg
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-          className="w-full h-36 overflow-visible"
+          className="w-full h-40 overflow-visible"
         >
-          {/* Baseline 98.6 Grid line */}
+          <defs>
+            <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.0" />
+            </linearGradient>
+          </defs>
+
+          {/* Baseline 98.6 Reference Line */}
           <line
             x1={paddingX}
             y1={baselineY}
             x2={chartWidth - paddingX}
             y2={baselineY}
             stroke="var(--border)"
-            strokeDasharray="2,2"
-            strokeWidth="1"
+            strokeDasharray="3,3"
+            strokeWidth="1.5"
           />
           <text
-            x={paddingX - 6}
+            x={paddingX - 8}
             y={baselineY + 3}
             fill="var(--text-muted)"
-            fontSize="9"
+            fontSize="10"
             fontFamily="var(--font-ibm-plex-mono), monospace"
             textAnchor="end"
+            fontWeight="500"
           >
-            98.6
+            98.6°
           </text>
 
-          {/* Fever line 100.4 */}
+          {/* Fever Line 100.4 */}
           <line
             x1={paddingX}
             y1={feverY}
             x2={chartWidth - paddingX}
             y2={feverY}
             stroke="var(--status-fever)"
-            strokeDasharray="3,3"
-            strokeWidth="1"
+            strokeDasharray="4,4"
+            strokeWidth="1.5"
+            strokeOpacity="0.8"
           />
           <text
-            x={paddingX - 6}
+            x={paddingX - 8}
             y={feverY + 3}
             fill="var(--status-fever)"
-            fontSize="9"
+            fontSize="10"
             fontFamily="var(--font-ibm-plex-mono), monospace"
             textAnchor="end"
             fontWeight="bold"
           >
-            100.4
+            100.4°
           </text>
 
-          {/* Connecting Line */}
+          {/* Area Gradient Under Curve */}
+          {areaD && (
+            <path
+              d={areaD}
+              fill="url(#areaGradient)"
+            />
+          )}
+
+          {/* Connecting Curve Line */}
           {pathD && (
             <path
               d={pathD}
               fill="none"
-              stroke="var(--text-muted)"
-              strokeWidth="1.5"
+              stroke="var(--accent)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
           )}
 
-          {/* Data Points */}
+          {/* Interactive Data Point Markers */}
           {sortedLogs.map((log, i) => {
             const cx = getX(i);
             const cy = getY(log.value);
@@ -141,34 +165,42 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
             return (
               <g
                 key={log._id || i}
-                className="cursor-pointer"
+                className="cursor-pointer transition-transform hover:scale-125"
                 onMouseEnter={() => setHoveredLog(log)}
                 onMouseLeave={() => setHoveredLog(null)}
               >
+                {/* Glow ring on hover / fever */}
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r="6"
+                  fill={colorVar}
+                  fillOpacity="0.2"
+                />
                 <circle
                   cx={cx}
                   cy={cy}
                   r="3.5"
                   fill={colorVar}
                   stroke="var(--bg)"
-                  strokeWidth="1.5"
+                  strokeWidth="2"
                 />
                 <text
                   x={cx}
-                  y={cy - 6}
+                  y={cy - 8}
                   fill={colorVar}
-                  fontSize="9"
+                  fontSize="10"
                   fontFamily="var(--font-ibm-plex-mono), monospace"
                   textAnchor="middle"
-                  className="font-mono font-bold"
+                  fontWeight="bold"
                 >
                   {log.value.toFixed(1)}°
                 </text>
                 <text
                   x={cx}
-                  y={chartHeight - 4}
+                  y={chartHeight - 6}
                   fill="var(--text-muted)"
-                  fontSize="8"
+                  fontSize="9"
                   fontFamily="var(--font-ibm-plex-mono), monospace"
                   textAnchor="middle"
                 >
@@ -181,15 +213,15 @@ export function TemperatureChart({ logs }: TemperatureChartProps) {
       </div>
 
       {hoveredLog && (
-        <div className="text-[11px] font-mono text-text-muted bg-panel border border-border p-2 rounded-[2px] flex items-center justify-between">
+        <div className="text-xs font-mono text-text-muted glass-panel p-2.5 rounded-lg flex items-center justify-between shadow-sm">
           <span>
             Reading: <strong className="text-text">{hoveredLog.value.toFixed(1)}°F</strong>{' '}
-            ({hoveredLog.hasFever ? 'Fever detected' : 'Afebrile / Stable'})
+            ({hoveredLog.hasFever ? 'Febrile Alert' : 'Normal / Stable'})
           </span>
           <span>
             Logged by:{' '}
-            <span className="text-text">
-              {hoveredLog.loggedBy?.name || hoveredLog.loggedBy?.staffId || 'Staff'}
+            <span className="text-accent font-semibold">
+              {hoveredLog.loggedBy?.name || hoveredLog.loggedBy?.staffId || 'Nurse'}
             </span>{' '}
             at {new Date(hoveredLog.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>

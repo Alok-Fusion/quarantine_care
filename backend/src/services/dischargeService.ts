@@ -73,6 +73,7 @@ export async function evaluateDischargeEligibility(
   // Sort day keys in ascending chronological order
   const sortedDayKeys = Array.from(daysMap.keys()).sort();
 
+  const daySummaryMap = new Map<string, DaySummary>();
   const daySummaries: DaySummary[] = sortedDayKeys.map((dayKey) => {
     const dayLogs = daysMap.get(dayKey)!;
     const hasFever = dayLogs.some((l) => l.hasFever);
@@ -81,32 +82,69 @@ export async function evaluateDischargeEligibility(
       new Date(current.loggedAt) > new Date(latest.loggedAt) ? current : latest
     );
 
-    return {
+    const summary: DaySummary = {
       date: dayKey,
       readingsCount: dayLogs.length,
       maxTemperature: maxTemp,
       hasFever,
       loggedAtLatest: latestLog.loggedAt,
     };
+    daySummaryMap.set(dayKey, summary);
+    return summary;
   });
 
-  // Calculate consecutive fever-free days working backwards from the most recent day
+  // Walk actual calendar dates backward from today (or from the patient's last log date if no log exists today)
+  const today = new Date();
+  const todayKey = formatDayKey(today);
+
+  let startDate: Date;
+  if (daySummaryMap.has(todayKey)) {
+    startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  } else {
+    // Start from the patient's last log date
+    const latestDayKey = sortedDayKeys[sortedDayKeys.length - 1];
+    const [year, month, day] = latestDayKey.split('-').map(Number);
+    startDate = new Date(year, month - 1, day);
+  }
+
   let consecutiveFeverFreeDays = 0;
-  for (let i = daySummaries.length - 1; i >= 0; i--) {
-    const day = daySummaries[i];
-    if (!day.hasFever) {
-      consecutiveFeverFreeDays++;
-    } else {
+  let breakReason: { type: 'fever' | 'missing'; date: string } | null = null;
+
+  const curr = new Date(startDate);
+  // Walk backwards one calendar day at a time
+  while (true) {
+    const dateKey = formatDayKey(curr);
+    const summary = daySummaryMap.get(dateKey);
+
+    if (!summary) {
+      breakReason = { type: 'missing', date: dateKey };
       break;
     }
+
+    if (summary.hasFever) {
+      breakReason = { type: 'fever', date: dateKey };
+      break;
+    }
+
+    consecutiveFeverFreeDays++;
+
+    // Move back 1 calendar day
+    curr.setDate(curr.getDate() - 1);
   }
 
   const isEligible = consecutiveFeverFreeDays >= 3;
   let reason = '';
+
   if (isEligible) {
     reason = `Patient has ${consecutiveFeverFreeDays} consecutive fever-free days (required: 3). Eligible for discharge.`;
   } else {
-    reason = `Patient has ${consecutiveFeverFreeDays} consecutive fever-free days (required: 3). Not eligible for discharge yet.`;
+    if (breakReason?.type === 'fever') {
+      reason = `not eligible — fever detected on ${breakReason.date} (${consecutiveFeverFreeDays}/3 consecutive fever-free days).`;
+    } else if (breakReason?.type === 'missing') {
+      reason = `not eligible — no temperature reading logged on ${breakReason.date} (${consecutiveFeverFreeDays}/3 consecutive fever-free days).`;
+    } else {
+      reason = `Patient has ${consecutiveFeverFreeDays} consecutive fever-free days (required: 3). Not eligible for discharge yet.`;
+    }
   }
 
   return {

@@ -13,6 +13,8 @@ import {
   Loader2,
   ShieldCheck,
   Building,
+  Bed,
+  CheckCircle2,
 } from 'lucide-react';
 
 export default function AdmitPatientPage() {
@@ -87,7 +89,7 @@ export default function AdmitPatientPage() {
       });
 
       showToast(
-        `Patient ${patientName.trim()} admitted to ${selectedBed}. Notifications dispatched.`,
+        `Patient ${patientName.trim()} admitted to ${selectedBed}.`,
         'info',
         'Patient Admitted'
       );
@@ -130,23 +132,22 @@ export default function AdmitPatientPage() {
           {/* Header Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
             <div>
-              <div className="flex items-center gap-2 text-text-muted text-[11px] font-mono uppercase tracking-wider mb-1">
-                <span>Facility Logistics</span>
-                <span>•</span>
-                <span>Bed Allocation</span>
+              <div className="flex items-center gap-2 text-accent text-xs font-mono uppercase tracking-wider mb-1 font-semibold">
+                <Building className="w-3.5 h-3.5" />
+                <span>Facility Allocation</span>
               </div>
-              <h1 className="text-xl font-bold text-text tracking-tight">
-                Patient Admission & 74-Bed Map
+              <h1 className="text-2xl font-bold text-text tracking-tight">
+                Patient Intake & Bed Allocation
               </h1>
               <p className="text-xs text-text-muted mt-0.5">
-                Assign available quarantine beds, enforce 74-patient capacity limits, and auto-dispatch clinical notifications.
+                Assign available quarantine beds across zones and manage admissions.
               </p>
             </div>
 
             <button
               onClick={fetchBeds}
               disabled={isLoadingBeds}
-              className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border border-border bg-panel hover:bg-panel-hover text-text-muted hover:text-text text-xs font-medium transition-colors"
+              className="self-start sm:self-auto flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-panel hover:bg-subpanel text-text-muted hover:text-text text-xs font-medium font-mono transition-all"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoadingBeds ? 'animate-spin' : ''}`} />
               <span>Refresh Map</span>
@@ -154,58 +155,59 @@ export default function AdmitPatientPage() {
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-panel border border-border rounded-[3px] p-3.5 flex items-center justify-between">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div className="bg-panel border border-border rounded-xl p-4 flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[11px] font-mono uppercase text-text-muted">Total Occupancy</span>
-                <div className="text-xl font-bold text-text mt-0.5 font-mono tabular-nums">
-                  {occupiedCount} <span className="text-xs text-text-muted font-normal">/ {capacity} beds</span>
+                <span className="text-[11px] font-mono uppercase text-text-muted font-semibold tracking-wider">Total Occupancy</span>
+                <div className="text-2xl font-bold text-text mt-1 font-mono tabular-nums">
+                  {occupiedCount} <span className="text-xs text-text-muted font-normal font-sans">/ {capacity} beds</span>
                 </div>
               </div>
-              <span className="text-xs font-mono tabular-nums text-text px-2 py-0.5 rounded-[2px] bg-subpanel border border-border">
-                {occupancyPercent}%
+              <span className="text-xs font-mono tabular-nums text-accent font-semibold px-2.5 py-0.5 rounded bg-accent/10 border border-accent/20">
+                {occupancyPercent}% Utilized
               </span>
             </div>
 
-            <div className="bg-panel border border-border rounded-[3px] p-3.5 flex items-center justify-between">
+            <div className="bg-panel border border-border rounded-xl p-4 flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[11px] font-mono uppercase text-text-muted">Available Capacity</span>
-                <div className="text-xl font-bold text-status-stable mt-0.5 font-mono tabular-nums">
+                <span className="text-[11px] font-mono uppercase text-text-muted font-semibold tracking-wider">Available Beds</span>
+                <div className="text-2xl font-bold text-status-stable mt-1 font-mono tabular-nums">
                   {freeCount} Free
                 </div>
               </div>
               <span className="w-2.5 h-2.5 rounded-full bg-status-stable" />
             </div>
 
-            <div className="bg-panel border border-border rounded-[3px] p-3.5 flex items-center justify-between">
+            <div className="bg-panel border border-border rounded-xl p-4 flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-[11px] font-mono uppercase text-text-muted">Quarantine Wards</span>
-                <div className="text-xs font-semibold text-text mt-1 font-mono">
-                  Zones A, B, C, D (74 total)
+                <span className="text-[11px] font-mono uppercase text-text-muted font-semibold tracking-wider">Quarantine Zones</span>
+                <div className="text-xs font-semibold text-text mt-1.5 font-mono">
+                  Zones A, B, C, D (74 total units)
                 </div>
               </div>
-              <Building className="w-4 h-4 text-text-muted" />
+              <Building className="w-4 h-4 text-accent" />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column: 74-Bed Map Grid (7 Cols) */}
-            <div className="lg:col-span-7 bg-panel border border-border rounded-[3px] p-4 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
-                <h3 className="text-xs font-bold text-text font-mono uppercase tracking-wide">
-                  Bed Grid Matrix ({filteredBeds.length} units)
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {/* Left Column: 74-Bed Map Grid */}
+            <div className="lg:col-span-7 bg-panel border border-border rounded-xl p-4 sm:p-5 space-y-3.5 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+                <h3 className="text-xs font-semibold text-text font-mono uppercase tracking-wider flex items-center gap-1.5">
+                  <Bed className="w-3.5 h-3.5 text-accent" />
+                  <span>Bed Allocation Matrix ({filteredBeds.length} units)</span>
                 </h3>
 
                 {/* Zone Filter */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 p-0.5 bg-subpanel rounded-lg border border-border">
                   {['all', 'Zone A', 'Zone B', 'Zone C', 'Zone D'].map((zone) => (
                     <button
                       key={zone}
                       onClick={() => setSelectedZone(zone)}
-                      className={`px-2.5 py-1 rounded-[2px] text-[11px] font-mono font-medium transition-colors ${
+                      className={`px-2.5 py-1 rounded text-xs font-mono font-medium transition-all ${
                         selectedZone === zone
-                          ? 'bg-subpanel text-text border border-border font-bold'
-                          : 'text-text-muted hover:text-text hover:bg-panel-hover'
+                          ? 'bg-panel text-accent font-semibold border border-border shadow-sm'
+                          : 'text-text-muted hover:text-text'
                       }`}
                     >
                       {zone === 'all' ? 'All' : zone.replace('Zone ', '')}
@@ -215,12 +217,12 @@ export default function AdmitPatientPage() {
               </div>
 
               {isLoadingBeds ? (
-                <div className="py-20 flex flex-col items-center justify-center text-text-muted font-mono">
-                  <Loader2 className="w-6 h-6 animate-spin mb-2" />
-                  <p className="text-xs">Loading bed matrix...</p>
+                <div className="py-20 flex flex-col items-center justify-center text-text-muted font-mono gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin text-accent" />
+                  <p className="text-xs">Loading facility beds...</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-1.5 max-h-[480px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[440px] overflow-y-auto pr-1">
                   {filteredBeds.map((bed) => {
                     const isOccupied = bed.status === 'occupied';
                     const isSelected = selectedBed === bed.bedNumber;
@@ -229,33 +231,33 @@ export default function AdmitPatientPage() {
                       <div
                         key={bed.bedNumber}
                         onClick={() => handleBedClick(bed)}
-                        className={`p-2 rounded-[3px] border transition-colors cursor-pointer flex flex-col justify-between min-h-[68px] ${
+                        className={`p-2.5 rounded-lg border transition-all cursor-pointer flex flex-col justify-between min-h-[68px] ${
                           isSelected
-                            ? 'border-accent bg-subpanel ring-1 ring-accent'
+                            ? 'border-accent bg-accent/10 ring-1 ring-accent text-text'
                             : isOccupied
-                            ? 'border-border bg-subpanel text-text-muted hover:border-border-light'
-                            : 'border-border bg-panel hover:bg-panel-hover hover:border-border-light text-text'
+                            ? 'border-border bg-subpanel/50 text-text-muted'
+                            : 'border-border bg-panel hover:bg-subpanel text-text'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-mono tabular-nums text-xs font-bold">
+                          <span className={`font-mono tabular-nums text-xs font-bold ${isSelected ? 'text-accent' : ''}`}>
                             {bed.bedNumber.replace('Bed ', '')}
                           </span>
                           <span
-                            className={`w-1.5 h-1.5 rounded-full ${
+                            className={`w-2 h-2 rounded-full ${
                               isOccupied ? 'bg-border' : 'bg-status-stable'
                             }`}
                           />
                         </div>
 
-                        <div className="mt-1">
+                        <div className="mt-1.5">
                           {isOccupied ? (
                             <div className="text-[10px] text-text-muted truncate font-mono" title={bed.patientName || ''}>
                               {bed.patientName}
                             </div>
                           ) : (
-                            <div className="text-[10px] text-text-muted font-mono">
-                              Available
+                            <div className="text-[10px] text-status-stable font-mono font-medium">
+                              Free
                             </div>
                           )}
                         </div>
@@ -265,7 +267,7 @@ export default function AdmitPatientPage() {
                 </div>
               )}
 
-              <div className="flex items-center gap-4 pt-2 text-[11px] text-text-muted border-t border-border font-mono">
+              <div className="flex items-center gap-4 pt-2 text-xs text-text-muted border-t border-border font-mono">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-status-stable" />
                   <span>Available ({freeCount})</span>
@@ -277,35 +279,36 @@ export default function AdmitPatientPage() {
               </div>
             </div>
 
-            {/* Right Column: Admission Form (5 Cols) */}
+            {/* Right Column: Admission Form */}
             <div
               id="admit-form"
-              className="lg:col-span-5 bg-panel border border-border rounded-[3px] p-4 space-y-4"
+              className="lg:col-span-5 bg-panel border border-border rounded-xl p-4 sm:p-5 space-y-3.5 shadow-sm"
             >
-              <div className="pb-2 border-b border-border">
-                <h3 className="text-xs font-bold text-text font-mono uppercase tracking-wide">
-                  Admit New Quarantine Patient
+              <div className="pb-2.5 border-b border-border">
+                <h3 className="text-xs font-semibold text-text font-mono uppercase tracking-wider flex items-center gap-1.5">
+                  <UserPlus className="w-3.5 h-3.5 text-accent" />
+                  <span>Admit Patient</span>
                 </h3>
               </div>
 
               {formError && (
-                <div className="p-2.5 rounded-[3px] bg-alert border-l-2 border-l-status-fever border border-border text-xs text-text flex items-start gap-2">
+                <div className="p-2.5 rounded-lg bg-alert border border-status-fever/30 text-xs text-text flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 text-status-fever shrink-0 mt-0.5" />
                   <span className="font-mono">{formError}</span>
                 </div>
               )}
 
               {freeCount === 0 && (
-                <div className="p-2.5 rounded-[3px] bg-alert border-l-2 border-l-status-pending border border-border text-xs text-text flex items-center gap-2 font-mono">
+                <div className="p-2.5 rounded-lg bg-alert border border-status-pending/30 text-xs text-text flex items-center gap-2 font-mono">
                   <AlertTriangle className="w-4 h-4 text-status-pending shrink-0" />
-                  <span>Facility is currently at full capacity (74/74 beds).</span>
+                  <span>Quarantine ward is at full capacity (74/74 beds).</span>
                 </div>
               )}
 
               <form onSubmit={handleAdmitSubmit} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-mono uppercase text-text-muted mb-1.5 font-semibold">
-                    Patient Full Name *
+                  <label className="block text-xs font-mono uppercase text-text-muted mb-1 font-semibold">
+                    Patient Name *
                   </label>
                   <input
                     type="text"
@@ -317,12 +320,12 @@ export default function AdmitPatientPage() {
                     }}
                     placeholder="e.g. Samuel Jackson"
                     disabled={isSubmitting || freeCount === 0}
-                    className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none transition-colors"
+                    className="w-full bg-input border border-border focus:border-accent text-text rounded-lg px-3 py-2 text-xs focus:outline-none transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono uppercase text-text-muted mb-1.5 font-semibold">
+                  <label className="block text-xs font-mono uppercase text-text-muted mb-1 font-semibold">
                     Assigned Bed *
                   </label>
                   <select
@@ -333,9 +336,9 @@ export default function AdmitPatientPage() {
                       if (formError) setFormError('');
                     }}
                     disabled={isSubmitting || freeCount === 0}
-                    className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] px-3 py-2 text-xs focus:outline-none font-mono tabular-nums transition-colors"
+                    className="w-full bg-input border border-border focus:border-accent text-text rounded-lg px-3 py-2 text-xs focus:outline-none font-mono tabular-nums transition-all"
                   >
-                    <option value="">-- Choose an Available Bed --</option>
+                    <option value="">-- Select Available Bed --</option>
                     {freeBedsList.map((bed) => (
                       <option key={bed.bedNumber} value={bed.bedNumber}>
                         {bed.bedNumber} ({bed.zone.split(' ')[0]})
@@ -345,28 +348,28 @@ export default function AdmitPatientPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono uppercase text-text-muted mb-1.5 font-semibold">
+                  <label className="block text-xs font-mono uppercase text-text-muted mb-1 font-semibold">
                     Intake Notes (Optional)
                   </label>
                   <textarea
                     rows={3}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Intake symptoms, contact tracing history, emergency contact..."
+                    placeholder="Initial symptoms, emergency contact info..."
                     disabled={isSubmitting || freeCount === 0}
-                    className="w-full bg-input border border-border focus:border-accent text-text rounded-[3px] p-2.5 text-xs focus:outline-none resize-none transition-colors"
+                    className="w-full bg-input border border-border focus:border-accent text-text rounded-lg p-2.5 text-xs focus:outline-none resize-none transition-all"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting || freeCount === 0 || !patientName.trim() || !selectedBed}
-                  className="w-full bg-btn hover:bg-btn-hover disabled:opacity-50 text-white font-bold font-mono py-2.5 px-3 rounded-[3px] border border-border flex items-center justify-center gap-1.5 text-xs transition-colors"
+                  className="w-full bg-btn hover:bg-btn-hover disabled:opacity-50 text-white font-semibold font-mono py-2.5 px-4 rounded-lg flex items-center justify-center gap-1.5 text-xs transition-all shadow-sm"
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Admitting Patient...</span>
+                      <span>Admitting...</span>
                     </>
                   ) : (
                     <>
@@ -377,9 +380,9 @@ export default function AdmitPatientPage() {
                 </button>
               </form>
 
-              <div className="pt-2 border-t border-border text-[11px] text-text-muted flex items-center gap-1.5 font-mono">
-                <ShieldCheck className="w-3.5 h-3.5 text-text-muted shrink-0" />
-                <span>Admission generates automatic notifications to attending staff.</span>
+              <div className="pt-2.5 border-t border-border text-[11px] text-text-muted flex items-center gap-1.5 font-mono">
+                <ShieldCheck className="w-3.5 h-3.5 text-accent shrink-0" />
+                <span>Admission notifies attending ward staff.</span>
               </div>
             </div>
           </div>
